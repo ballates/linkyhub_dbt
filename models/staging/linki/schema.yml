@@ -93,13 +93,50 @@ models:
       - name: _at_load
         description: "Date de chargement de la ligne / Line loading date"
 
-
-
-
-
-
-
-
-
-
-
+  - name: stg_donnees_geo
+    description: "Table staging des données démographiques LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: principales_donnees_demographiques
+        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+      - name: pourcentage
+        description: "Pourcentage de l'audience correspondant à la catégorie"
+      - name: valeur
+        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_interactions
+    description: "Table staging des interactions sur les posts LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: url_du_post
+        description: "URL du post LinkedIn"
+      - name: date_de_publication_du_post
+        description: "Date de publication du post"
+      - name: interactions
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_posts
+    description: "Table staging des posts LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: impressions
+        description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+      - name: url_du_post
+        description: "URL du post LinkedIn"
+      - name: date_de_publication_du_post
+        description: "Date de publication du post"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
