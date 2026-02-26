@@ -76,6 +76,30 @@ models:
         description: "Date à laquelle la connexion a été établie"
       - name: _at_load
         description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_abonnes
+    description: "Table intermédiaire des abonnés LinkedIn avec normalisation des types"
+    columns:
+      - name: date
+        description: "Date de référence de la métrique"
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés sur la période"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  - name: int_donnees_geo
+    description: "Table intermédiaire des données géographiques LinkedIn avec normalisation des types"
+    columns:
+      - name: zones_geographiques
+        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+      - name: pourcentage
+        description: "Pourcentage de l'audience correspondant à la catégorie"
+      - name: valeur
+        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+
+
+
 
 
 
