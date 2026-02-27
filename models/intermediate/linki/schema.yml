@@ -86,6 +86,7 @@ models:
         description: "Nombre de nouveaux abonnés sur la période"
       - name: _at_load
         description: "Date de chargement de la ligne / Line loading date"
+  
   - name: int_donnees_geo
     description: "Table intermédiaire des données géographiques LinkedIn avec normalisation des types"
     columns:
@@ -97,6 +98,33 @@ models:
         description: "Valeur absolue ou libellé associé à la catégorie démographique"
       - name: _at_load
         description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_interactions
+    description: "Table intermédiaire des interactions sur les posts LinkedIn avec normalisation des types"
+    columns:
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+      - name: interactions
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+ 
+  - name: int_posts
+    description: "Table intermédiaire des posts LinkedIn avec normalisation des types"
+    columns:
+      - name: impressions
+        description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+
+
+
 
 
 
