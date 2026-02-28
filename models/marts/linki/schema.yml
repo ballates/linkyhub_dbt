@@ -1,8 +1,8 @@
 models:
-  - name: fct_activite_linkedin
+  - name: fct_posts
     description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post"
     columns:
-      - name: post_key
+      - name: post_ID
         description: "Clé surrogate du post (FARM_FINGERPRINT)"
       - name: url_post
         description: "URL du post LinkedIn"
@@ -16,8 +16,45 @@ models:
         description: "Nombre de nouveaux abonnés le jour de publication du post"
       - name: _at_load
         description: "Date de chargement de la ligne"
-
-  - name: dim_post
+  - name: fct_abonnes
+    description: "Table de fait des abonnés LinkedIn - grain : 1 ligne par jour"
+    columns:
+      - name: date
+        description: "Date du jour (clé naturelle, jointure avec dim_calendar)"
+        tests:
+          - not_null
+          - unique
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés ce jour"
+        tests:
+          - not_null
+      - name: _at_load
+        description: "Date de chargement de la ligne dans le gold"
+  - name: dim_calendar
+    description: "Table de calendrier - grain : 1 ligne par jour - pont entre fct_posts et fct_abonnes"
+    columns:
+      - name: date
+        description: "Date (clé naturelle)"
+        tests:
+          - not_null
+          - unique
+      - name: annee
+        description: "Année"
+      - name: trimestre
+        description: "Trimestre (1 à 4)"
+      - name: mois
+        description: "Mois (1 à 12)"
+      - name: nom_mois
+        description: "Nom du mois en anglais (January, February...)"
+      - name: semaine
+        description: "Numéro de semaine dans l'année"
+      - name: jour
+        description: "Jour du mois"
+      - name: nom_jour
+        description: "Nom du jour en anglais (Monday, Tuesday...)"
+      - name: est_weekend
+        description: "TRUE si samedi ou dimanche"
+  - name: dim_posts
     description: "Dimension des posts LinkedIn"
     columns:
       - name: post_key
