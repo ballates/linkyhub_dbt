@@ -1,5 +1,5 @@
 SELECT
-    FARM_FINGERPRINT(CONCAT(title, COALESCE(type, ''))) AS learning_key,
+    FARM_FINGERPRINT(CONCAT(title, COALESCE(type, ''))) AS learning_id,
     title,
     description,
     type,

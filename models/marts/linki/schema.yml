@@ -102,16 +102,12 @@ models:
       - name: license_number
         description: "Numéro de licence"
 
-  - name: dim_donnees_geo
+  - name: dim_sectors
     description: "Dimension des données géographiques de l'audience LinkedIn"
     columns:
-      - name: geo_key
-        description: "Clé surrogate de la zone géographique"
-      - name: zones_geographiques
-        description: "Catégorie démographique (pays, ville, secteur)"
-      - name: pourcentage
+      - name: percent
         description: "Pourcentage de l'audience"
-      - name: valeur
+      - name: sectors
         description: "Valeur associée à la catégorie"
 
   - name: dim_learning

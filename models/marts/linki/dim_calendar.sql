@@ -14,6 +14,7 @@ SELECT
     EXTRACT(QUARTER FROM date)              AS trimestre,
     EXTRACT(MONTH FROM date)                AS mois,
     FORMAT_DATE('%B', date)                 AS nom_mois,
+    FORMAT_DATE('%b', date)                 AS nom_mois_court,
     EXTRACT(WEEK FROM date)                 AS semaine,
     EXTRACT(DAY FROM date)                  AS jour,
     FORMAT_DATE('%A', date)                 AS nom_jour,
