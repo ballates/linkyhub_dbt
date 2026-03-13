@@ -8,3 +8,4 @@ SELECT
     position,
     connected_on
 FROM {{ ref('int_connections') }}
+WHERE first_name IS NOT NULL

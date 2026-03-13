@@ -37,7 +37,7 @@ models:
         +schema: bronze_linki
     intermediate:
       linki:
-        +materialized: view
+        +materialized: table
         +schema: silver_linki
     marts:
       linki:
