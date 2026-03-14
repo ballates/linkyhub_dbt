@@ -1,0 +1,138 @@
+version: 2
+
+models:
+  - name: int_invitations
+    description: "Table staging des invitations LinkedIn"
+    columns:
+      - name: from
+        description: "Nom complet de l'expéditeur de l'invitation"
+      - name: to
+        description: "Nom complet du destinataire de l'invitation"
+      - name: sent_at
+        description: "Date et heure d'envoi de l'invitation"
+      - name: message
+        description: "Message personnalisé accompagnant l'invitation"
+      - name: direction
+        description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+      - name: inviter_profile_url
+        description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
+      - name: invitee_profile_url
+        description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+
+  - name: int_certifications
+    description: "Table intermédiaire des certifications LinkedIn avec normalisation des types"
+    columns:
+      - name: name
+        description: "Nom de la certification obtenue"
+      - name: url
+        description: "Lien vers la certification en ligne"
+      - name: authority
+        description: "Organisme ou entreprise qui a délivré la certification"
+      - name: started_on
+        description: "Date de début de la certification"
+      - name: finished_on
+        description: "Date d'expiration de la certification"
+      - name: license_number
+        description: "Numéro de licence ou identifiant unique de la certification"
+  
+  - name: int_learning
+    description: "Table intermédiaire des formations LinkedIn Learning avec normalisation des types"
+    columns:
+      - name: title
+        description: "Titre du contenu de formation LinkedIn Learning"
+      - name: description
+        description: "Description détaillée du contenu de formation"
+      - name: type
+        description: "Type de contenu : Course, Video, etc."
+      - name: last_watched_date
+        description: "Date de dernière consultation du contenu"
+      - name: completed_at
+        description: "Date à laquelle le contenu a été complété"
+      - name: saved
+        description: "Indique si le contenu a été sauvegardé"
+      - name: notes
+        description: "Notes prises sur le contenu"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_connections
+    description: "Table intermédiaire des connexions LinkedIn avec normalisation des types"
+    columns:
+      - name: first_name
+        description: "Prénom du contact LinkedIn"
+      - name: last_name
+        description: "Nom de famille du contact LinkedIn"
+      - name: url
+        description: "Lien vers le profil LinkedIn du contact"
+      - name: email_address
+        description: "Adresse email du contact"
+      - name: company
+        description: "Entreprise actuelle du contact"
+      - name: position
+        description: "Poste occupé par le contact"
+      - name: connected_on
+        description: "Date à laquelle la connexion a été établie"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_abonnes
+    description: "Table intermédiaire des abonnés LinkedIn avec normalisation des types"
+    columns:
+      - name: date
+        description: "Date de référence de la métrique"
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés sur la période"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_donnees_geo
+    description: "Table intermédiaire des données géographiques LinkedIn avec normalisation des types"
+    columns:
+      - name: zones_geographiques
+        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+      - name: pourcentage
+        description: "Pourcentage de l'audience correspondant à la catégorie"
+      - name: valeur
+        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: int_interactions
+    description: "Table intermédiaire des interactions sur les posts LinkedIn avec normalisation des types"
+    columns:
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+      - name: interactions
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+ 
+  - name: int_posts
+    description: "Table intermédiaire des posts LinkedIn avec normalisation des types"
+    columns:
+      - name: impressions
+        description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
