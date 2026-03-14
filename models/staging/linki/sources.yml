@@ -1,0 +1,147 @@
+sources:
+  - name: linki_bucket_set
+    database: prime-force-478609-s4
+    schema: linki_bucket_set
+    tables:
+      - name: invitations
+        description: "Table source des invitations LinkedIn issue de Fivetran"
+        columns:
+          - name: From
+            description: "Nom complet de l'expéditeur de l'invitation"
+          - name: To
+            description: "Nom complet du destinataire de l'invitation"
+          - name: Sent At
+            description: "Date et heure d'envoi de l'invitation"
+          - name: Message
+            description: "Message personnalisé accompagnant l'invitation"
+          - name: Direction
+            description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+          - name: inviterProfileUrl
+            description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
+          - name: inviteeProfileUrl
+            description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
+
+      - name: certifications
+        description: "Table source des certifications LinkedIn issue du bucket GCS"
+        columns:
+          - name: Name
+            description: "Nom de la certification obtenue"
+          - name: Url
+            description: "Lien vers la certification en ligne"
+          - name: Authority
+            description: "Organisme ou entreprise qui a délivré la certification"
+          - name: Started On
+            description: "Date de début de la certification"
+          - name: Finished On
+            description: "Date d'expiration de la certification"
+          - name: License Number
+            description: "Numéro de licence ou identifiant unique de la certification"
+      
+      - name: connections
+        description: "Table source des connexions LinkedIn issue du bucket GCS"
+        columns:
+          - name: First Name
+            description: "Prénom du contact LinkedIn"
+          - name: Last Name
+            description: "Nom de famille du contact LinkedIn"
+          - name: URL
+            description: "Lien vers le profil LinkedIn du contact"
+          - name: Email Address
+            description: "Adresse email du contact"
+          - name: Company
+            description: "Entreprise actuelle du contact"
+          - name: Position
+            description: "Poste occupé par le contact"
+          - name: Connected On
+            description: "Date à laquelle la connexion a été établie"
+      
+      - name: learning
+        description: "Table source des formations LinkedIn Learning issue du bucket GCS"
+        columns:
+          - name: string_field_0
+            description: "Titre du contenu de formation LinkedIn Learning"
+          - name: string_field_1
+            description: "Description détaillée du contenu de formation"
+          - name: string_field_2
+            description: "Type de contenu : Course, Video, etc."
+          - name: string_field_3
+            description: "Date de dernière consultation du contenu"
+          - name: string_field_4
+            description: "Date à laquelle le contenu a été complété"
+          - name: string_field_5
+            description: "Indique si le contenu a été sauvegardé"
+          - name: string_field_6
+            description: "Notes prises sur le contenu"
+          - name: string_field_7
+            description: "Colonne technique sans valeur identifiée"
+  - name: google_drive
+    database: prime-force-478609-s4
+    schema: google_drive
+    tables:
+      - name: contenu_2025_01_21_2026_01_20_ben_mbairo_abonnes
+        description: "Table source des abonnés LinkedIn issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: date_
+            description: "Date de l'abonnement"
+          - name: nouveaux_abonnes
+            description: "Nombre de nouveaux abonnés sur la période"
+
+      - name: contenu_2025_01_21_2026_01_20_ben_mbairo_donnees_demographiques
+        description: "Table source des données démographiques LinkedIn issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: principales_donnees_demographiques
+            description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+          - name: pourcentage
+            description: "Pourcentage de l'audience correspondant à la catégorie"
+          - name: valeur
+            description: "Valeur absolue ou libellé associé à la catégorie démographique"
+      
+      - name: contenu_2025_01_21_2026_01_20_ben_mbairo_interactions
+        description: "Table source des interactions LinkedIn issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: url_du_post
+            description: "URL du post LinkedIn"
+          - name: date_de_publication_du_post
+            description: "Date de publication du post"
+          - name: interactions
+            description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+            
+      - name: contenu_2025_01_21_2026_01_20_ben_mbairo_posts
+        description: "Table source des posts LinkedIn issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: impressions
+            description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+          - name: url_du_post
+            description: "URL du post LinkedIn"
+          - name: date_de_publication_du_post
+            description: "Date de publication du post"
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,151 @@
+models:
+  - name: fct_posts
+    description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post"
+    columns:
+      - name: post_ID
+        description: "Clé surrogate du post (FARM_FINGERPRINT)"
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+      - name: impressions
+        description: "Nombre de vues du post"
+      - name: interactions
+        description: "Nombre total d'interactions (likes, commentaires, partages)"
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés le jour de publication du post"
+      - name: _at_load
+        description: "Date de chargement de la ligne"
+  - name: fct_abonnes
+    description: "Table de fait des abonnés LinkedIn - grain : 1 ligne par jour"
+    columns:
+      - name: date
+        description: "Date du jour (clé naturelle, jointure avec dim_calendar)"
+        tests:
+          - not_null
+          - unique
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés ce jour"
+        tests:
+          - not_null
+      - name: _at_load
+        description: "Date de chargement de la ligne dans le gold"
+  - name: dim_calendar
+    description: "Table de calendrier - grain : 1 ligne par jour - pont entre fct_posts et fct_abonnes"
+    columns:
+      - name: date
+        description: "Date (clé naturelle)"
+        tests:
+          - not_null
+          - unique
+      - name: annee
+        description: "Année"
+      - name: trimestre
+        description: "Trimestre (1 à 4)"
+      - name: mois
+        description: "Mois (1 à 12)"
+      - name: nom_mois
+        description: "Nom du mois en anglais (January, February...)"
+      - name: semaine
+        description: "Numéro de semaine dans l'année"
+      - name: jour
+        description: "Jour du mois"
+      - name: nom_jour
+        description: "Nom du jour en anglais (Monday, Tuesday...)"
+      - name: est_weekend
+        description: "TRUE si samedi ou dimanche"
+  - name: dim_posts
+    description: "Dimension des posts LinkedIn"
+    columns:
+      - name: post_key
+        description: "Clé surrogate du post"
+      - name: url_post
+        description: "URL du post LinkedIn"
+      - name: date_publication_post
+        description: "Date de publication du post"
+
+  - name: dim_connections
+    description: "Dimension des connexions LinkedIn"
+    columns:
+      - name: connection_key
+        description: "Clé surrogate de la connexion"
+      - name: first_name
+        description: "Prénom du contact"
+      - name: last_name
+        description: "Nom de famille du contact"
+      - name: url
+        description: "URL du profil LinkedIn"
+      - name: email_address
+        description: "Adresse email du contact"
+      - name: company
+        description: "Entreprise actuelle du contact"
+      - name: position
+        description: "Poste occupé par le contact"
+      - name: connected_on
+        description: "Date de connexion"
+
+  - name: dim_certifications
+    description: "Dimension des certifications LinkedIn"
+    columns:
+      - name: certification_key
+        description: "Clé surrogate de la certification"
+      - name: name
+        description: "Nom de la certification"
+      - name: url
+        description: "Lien vers la certification"
+      - name: authority
+        description: "Organisme qui a délivré la certification"
+      - name: started_on
+        description: "Date de début"
+      - name: finished_on
+        description: "Date d'expiration"
+      - name: license_number
+        description: "Numéro de licence"
+
+  - name: dim_sectors
+    description: "Dimension des données géographiques de l'audience LinkedIn"
+    columns:
+      - name: percent
+        description: "Pourcentage de l'audience"
+      - name: sectors
+        description: "Valeur associée à la catégorie"
+
+  - name: dim_learning
+    description: "Dimension des formations LinkedIn Learning"
+    columns:
+      - name: learning_key
+        description: "Clé surrogate de la formation"
+      - name: title
+        description: "Titre de la formation"
+      - name: description
+        description: "Description de la formation"
+      - name: type
+        description: "Type de contenu"
+      - name: last_watched_date
+        description: "Date de dernière consultation"
+      - name: completed_at
+        description: "Date de complétion"
+      - name: saved
+        description: "Indique si la formation a été sauvegardée"
+      - name: notes
+        description: "Notes sur la formation"
+
+  - name: dim_invitations
+    description: "Dimension des invitations LinkedIn"
+    columns:
+      - name: invitation_key
+        description: "Clé surrogate de l'invitation"
+      - name: sender
+        description: "Expéditeur de l'invitation"
+      - name: recipient
+        description: "Destinataire de l'invitation"
+      - name: direction
+        description: "Sens de l'invitation : OUTGOING ou INCOMING"
+      - name: sent_at
+        description: "Date d'envoi"
+      - name: message
+        description: "Message accompagnant l'invitation"
+      - name: inviter_profile_url
+        description: "URL du profil de l'expéditeur"
+      - name: invitee_profile_url
+        description: "URL du profil du destinataire"

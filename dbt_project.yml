@@ -31,9 +31,17 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   linkyhub_dbt:
-    # Config indicated by + and applies to all files under models/example/
-    example:
-      +materialized: view
-
+    staging:
+      linki:
+        +materialized: view
+        +schema: bronze_linki
+    intermediate:
+      linki:
+        +materialized: table
+        +schema: silver_linki
+    marts:
+      linki:
+        +materialized: table
+        +schema: gold_linki
 dbt-cloud:
     project-id: 70471823557096

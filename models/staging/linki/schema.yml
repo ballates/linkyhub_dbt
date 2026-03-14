@@ -1,0 +1,142 @@
+version: 2
+
+models:
+  - name: stg_invitations
+    description: "Table staging des invitations LinkedIn"
+    columns:
+      - name: from
+        description: "Nom complet de l'expéditeur de l'invitation"
+      - name: to
+        description: "Nom complet du destinataire de l'invitation"
+      - name: sent_at
+        description: "Date et heure d'envoi de l'invitation"
+      - name: message
+        description: "Message personnalisé accompagnant l'invitation"
+      - name: direction
+        description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+      - name: inviter_profile_url
+        description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
+      - name: invitee_profile_url
+        description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  - name: stg_certifications
+    description: "Table staging des certifications LinkedIn"
+    columns:
+      - name: Name
+        description: "Nom de la certification obtenue"
+      - name: Url
+        description: "Lien vers la certification en ligne"
+      - name: Authority
+        description: "Organisme ou entreprise qui a délivré la certification"
+      - name: Started On
+        description: "Date de début de la certification"
+      - name: Finished On
+        description: "Date d'expiration de la certification"
+      - name: License Number
+        description: "Numéro de licence ou identifiant unique de la certification"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  - name: stg_connections
+    description: "Table staging des connexions LinkedIn"
+    columns:
+      - name: First Name
+        description: "Prénom du contact LinkedIn"
+      - name: Last Name
+        description: "Nom de famille du contact LinkedIn"
+      - name: URL
+        description: "Lien vers le profil LinkedIn du contact"
+      - name: Email Address
+        description: "Adresse email du contact"
+      - name: Company
+        description: "Entreprise actuelle du contact"
+      - name: Position
+        description: "Poste occupé par le contact"
+      - name: Connected On
+        description: "Date à laquelle la connexion a été établie"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_learning
+    description: "Table staging des formations LinkedIn Learning"
+    columns:
+      - name: Title
+        description: "Titre du contenu de formation LinkedIn Learning"
+      - name: Description
+        description: "Description détaillée du contenu de formation"
+      - name: Type
+        description: "Type de contenu : Course, Video, etc."
+      - name: Last Watched Date
+        description: "Date de dernière consultation du contenu"
+      - name: Completed At
+        description: "Date à laquelle le contenu a été complété"
+      - name: Saved
+        description: "Indique si le contenu a été sauvegardé"
+      - name: Notes
+        description: "Notes prises sur le contenu"
+      - name: string_field_7
+        description: "Colonne technique sans valeur identifiée"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_abonnes
+    description: "Table staging des abonnés LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: date_
+        description: "Date de l'abonnement"
+      - name: nouveaux_abonnes
+        description: "Nombre de nouveaux abonnés sur la période"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+
+  - name: stg_donnees_geo
+    description: "Table staging des données démographiques LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: principales_donnees_demographiques
+        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+      - name: pourcentage
+        description: "Pourcentage de l'audience correspondant à la catégorie"
+      - name: valeur
+        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_interactions
+    description: "Table staging des interactions sur les posts LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: url_du_post
+        description: "URL du post LinkedIn"
+      - name: date_de_publication_du_post
+        description: "Date de publication du post"
+      - name: interactions
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
+  
+  - name: stg_posts
+    description: "Table staging des posts LinkedIn"
+    columns:
+      - name: _line
+        description: "Numéro de ligne technique"
+      - name: _fivetran_synced
+        description: "Date et heure de la dernière synchronisation Fivetran"
+      - name: impressions
+        description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+      - name: url_du_post
+        description: "URL du post LinkedIn"
+      - name: date_de_publication_du_post
+        description: "Date de publication du post"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
