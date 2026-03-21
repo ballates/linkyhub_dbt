@@ -1,151 +1,198 @@
+version: 2
+
 models:
   - name: fct_posts
-    description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post"
+    description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post - combine les impressions et interactions des posts LinkedIn"
     columns:
       - name: post_ID
-        description: "Clé surrogate du post (FARM_FINGERPRINT)"
+        description: "Clé surrogate du post générée via FARM_FINGERPRINT de l'URL du post"
       - name: url_post
-        description: "URL du post LinkedIn"
+        description: "URL unique du post LinkedIn"
       - name: date_publication_post
         description: "Date de publication du post"
       - name: impressions
-        description: "Nombre de vues du post"
+        description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
       - name: interactions
-        description: "Nombre total d'interactions (likes, commentaires, partages)"
-      - name: nouveaux_abonnes
-        description: "Nombre de nouveaux abonnés le jour de publication du post"
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - par défaut 0 si aucune interaction"
       - name: _at_load
-        description: "Date de chargement de la ligne"
+        description: "Date et heure de chargement de la ligne dans la table de fait"
+
   - name: fct_abonnes
-    description: "Table de fait des abonnés LinkedIn - grain : 1 ligne par jour"
+    description: "Table de fait des abonnés LinkedIn - grain : 1 ligne par jour - suivi de l'évolution du nombre d'abonnés"
     columns:
       - name: date
-        description: "Date du jour (clé naturelle, jointure avec dim_calendar)"
+        description: "Date du jour (clé naturelle, pour jointure avec dim_calendar)"
         tests:
           - not_null
           - unique
       - name: nouveaux_abonnes
-        description: "Nombre de nouveaux abonnés ce jour"
+        description: "Nombre de nouveaux abonnés acquis ce jour"
         tests:
           - not_null
       - name: _at_load
-        description: "Date de chargement de la ligne dans le gold"
+        description: "Date et heure de chargement de la ligne dans la table de fait"
+
   - name: dim_calendar
-    description: "Table de calendrier - grain : 1 ligne par jour - pont entre fct_posts et fct_abonnes"
+    description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2026 - pont de jointure entre fct_posts et fct_abonnes"
     columns:
       - name: date
-        description: "Date (clé naturelle)"
+        description: "Date calendaire (clé naturelle)"
         tests:
           - not_null
           - unique
       - name: annee
-        description: "Année"
+        description: "Année (2021-2026)"
       - name: trimestre
-        description: "Trimestre (1 à 4)"
+        description: "Trimestre (1, 2, 3, ou 4)"
       - name: mois
         description: "Mois (1 à 12)"
       - name: nom_mois
-        description: "Nom du mois en anglais (January, February...)"
+        description: "Nom du mois en anglais (January, February, etc.)"
+      - name: nom_mois_court
+        description: "Abréviation du mois en anglais (Jan, Feb, etc.)"
       - name: semaine
-        description: "Numéro de semaine dans l'année"
+        description: "Numéro de semaine dans l'année (ISO 8601)"
       - name: jour
-        description: "Jour du mois"
+        description: "Jour du mois (1 à 31)"
       - name: nom_jour
-        description: "Nom du jour en anglais (Monday, Tuesday...)"
+        description: "Nom du jour en anglais (Monday, Tuesday, etc.)"
       - name: est_weekend
-        description: "TRUE si samedi ou dimanche"
+        description: "Booléen : TRUE si samedi ou dimanche, FALSE sinon"
+
   - name: dim_posts
-    description: "Dimension des posts LinkedIn"
+    description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique - enrichissement des posts avec métadonnées"
     columns:
-      - name: post_key
-        description: "Clé surrogate du post"
+      - name: post_ID
+        description: "Clé surrogate du post (FARM_FINGERPRINT de l'URL)"
       - name: url_post
-        description: "URL du post LinkedIn"
+        description: "URL unique et complète du post LinkedIn"
       - name: date_publication_post
         description: "Date de publication du post"
+      - name: label_post
+        description: "Libellé formaté du post (ex: 'Post du 21-03-2026')"
 
   - name: dim_connections
-    description: "Dimension des connexions LinkedIn"
+    description: "Dimension des connexions LinkedIn - grain : 1 ligne par contact unique - profils des connexions réseau"
     columns:
-      - name: connection_key
-        description: "Clé surrogate de la connexion"
+      - name: connection_id
+        description: "Clé surrogate de la connexion (FARM_FINGERPRINT concaténant nom, prénom et URL)"
       - name: first_name
-        description: "Prénom du contact"
+        description: "Prénom du contact LinkedIn"
       - name: last_name
-        description: "Nom de famille du contact"
+        description: "Nom de famille du contact LinkedIn"
       - name: url
-        description: "URL du profil LinkedIn"
+        description: "URL unique du profil LinkedIn du contact"
       - name: email_address
         description: "Adresse email du contact"
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
-        description: "Poste occupé par le contact"
+        description: "Poste occupé par le contact dans son entreprise"
       - name: connected_on
-        description: "Date de connexion"
+        description: "Date à laquelle la connexion a été établie (avec normalisation des formats français/anglais)"
 
   - name: dim_certifications
-    description: "Dimension des certifications LinkedIn"
+    description: "Dimension des certifications LinkedIn - grain : 1 ligne par certification unique - portfolio des qualifications obtenues"
     columns:
-      - name: certification_key
-        description: "Clé surrogate de la certification"
+      - name: certification_id
+        description: "Clé surrogate de la certification (FARM_FINGERPRINT du nom et de l'organisme)"
       - name: name
-        description: "Nom de la certification"
+        description: "Nom de la certification obtenue"
       - name: url
-        description: "Lien vers la certification"
+        description: "Lien vers la certification en ligne pour vérification"
       - name: authority
-        description: "Organisme qui a délivré la certification"
+        description: "Organisme ou entreprise qui a délivré la certification"
       - name: started_on
-        description: "Date de début"
+        description: "Date de début de la formation/certification"
       - name: finished_on
-        description: "Date d'expiration"
+        description: "Date d'expiration ou de complétion de la certification"
       - name: license_number
-        description: "Numéro de licence"
-
-  - name: dim_sectors
-    description: "Dimension des données géographiques de l'audience LinkedIn"
-    columns:
-      - name: percent
-        description: "Pourcentage de l'audience"
-      - name: sectors
-        description: "Valeur associée à la catégorie"
+        description: "Numéro de licence ou identifiant unique de la certification"
 
   - name: dim_learning
-    description: "Dimension des formations LinkedIn Learning"
+    description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par contenu de formation unique - parcours d'apprentissage"
     columns:
-      - name: learning_key
-        description: "Clé surrogate de la formation"
+      - name: learning_id
+        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre et du type)"
       - name: title
-        description: "Titre de la formation"
+        description: "Titre du contenu de formation LinkedIn Learning"
       - name: description
-        description: "Description de la formation"
+        description: "Description détaillée du contenu de formation"
       - name: type
-        description: "Type de contenu"
+        description: "Type de contenu éducatif (Course, Video, etc.)"
       - name: last_watched_date
-        description: "Date de dernière consultation"
+        description: "Date et heure de dernière consultation du contenu"
       - name: completed_at
-        description: "Date de complétion"
+        description: "Date à laquelle le contenu a été complété/terminé"
       - name: saved
-        description: "Indique si la formation a été sauvegardée"
+        description: "Booléen : TRUE si le contenu a été sauvegardé, FALSE sinon"
       - name: notes
-        description: "Notes sur la formation"
+        description: "Notes personnelles prises lors de la consultation du contenu"
 
   - name: dim_invitations
-    description: "Dimension des invitations LinkedIn"
+    description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique - historique des interactions réseau"
     columns:
-      - name: invitation_key
-        description: "Clé surrogate de l'invitation"
+      - name: invitation_ID
+        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT concaténant expéditeur, destinataire et date)"
       - name: sender
-        description: "Expéditeur de l'invitation"
+        description: "Nom complet de la personne qui a envoyé l'invitation"
       - name: recipient
-        description: "Destinataire de l'invitation"
+        description: "Nom complet de la personne qui a reçu l'invitation"
       - name: direction
-        description: "Sens de l'invitation : OUTGOING ou INCOMING"
+        description: "Sens de l'invitation : OUTGOING (envoyée par l'utilisateur) ou INCOMING (reçue par l'utilisateur)"
       - name: sent_at
-        description: "Date d'envoi"
+        description: "Date et heure d'envoi de l'invitation"
       - name: message
-        description: "Message accompagnant l'invitation"
+        description: "Message personnalisé accompagnant l'invitation"
       - name: inviter_profile_url
-        description: "URL du profil de l'expéditeur"
+        description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
-        description: "URL du profil du destinataire"
+        description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
+
+  - name: dim_area
+    description: "Dimension des zones géographiques/lieux LinkedIn - grain : 1 ligne par zone unique - répartition géographique de l'audience"
+    columns:
+      - name: areas
+        description: "Libellé de la zone géographique ou lieu"
+      - name: pourcentage
+        description: "Pourcentage de l'audience situé dans cette zone géographique"
+
+  - name: dim_company
+    description: "Dimension des entreprises de l'audience LinkedIn - grain : 1 ligne par entreprise - segmentation par secteur d'activité"
+    columns:
+      - name: companies
+        description: "Nom ou libellé de l'entreprise"
+      - name: pourcentage
+        description: "Pourcentage de l'audience proposant cette entreprise"
+
+  - name: dim_hierarchy_level
+    description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau - segmentation par niveau de responsabilité"
+    columns:
+      - name: hierarchy_level
+        description: "Libellé du niveau hiérarchique (directeur, manager, employé, etc.)"
+      - name: percent
+        description: "Pourcentage de l'audience correspondant à ce niveau hiérarchique"
+
+  - name: dim_sectors
+    description: "Dimension des secteurs d'activité LinkedIn - grain : 1 ligne par secteur - répartition par domaine d'activité"
+    columns:
+      - name: sectors
+        description: "Libellé du secteur d'activité"
+      - name: pourcentage
+        description: "Pourcentage de l'audience travaillant dans ce secteur"
+
+  - name: dim_size_company
+    description: "Dimension de la taille des entreprises LinkedIn - grain : 1 ligne par classe de taille - segmentation par effectifs"
+    columns:
+      - name: size_companies
+        description: "Libellé de la classe de taille d'entreprise (PME, ETI, GE, etc.)"
+      - name: pourcentage
+        description: "Pourcentage de l'audience travaillant dans des entreprises de cette taille"
+
+  - name: dim_type_company
+    description: "Dimension des intitulés de poste LinkedIn - grain : 1 ligne par intitulé unique - segmentation par fonction professionnelle"
+    columns:
+      - name: type_company
+        description: "Intitulé du poste ou fonction professionnelle"
+      - name: pourcentage
+        description: "Pourcentage de l'audience occupant cet intitulé de poste"
