@@ -2,11 +2,11 @@ version: 2
 
 models:
   - name: int_invitations
-    description: "Table staging des invitations LinkedIn"
+    description: "Table intermédiaire des invitations LinkedIn avec normalisation des types"
     columns:
-      - name: from
+      - name: sender
         description: "Nom complet de l'expéditeur de l'invitation"
-      - name: to
+      - name: recipient
         description: "Nom complet du destinataire de l'invitation"
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
@@ -36,6 +36,8 @@ models:
         description: "Date d'expiration de la certification"
       - name: license_number
         description: "Numéro de licence ou identifiant unique de la certification"
+      - name: _at_load
+        description: "Date de chargement de la ligne / Line loading date"
   
   - name: int_learning
     description: "Table intermédiaire des formations LinkedIn Learning avec normalisation des types"
