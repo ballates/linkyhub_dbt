@@ -1,11 +1,5 @@
 WITH date_spine AS (
-    SELECT date
-    FROM UNNEST(
-        GENERATE_DATE_ARRAY(
-            DATE '2021-01-01',
-            DATE '2026-12-31'
-        )
-    ) AS date
+    {{ generate_date_spine('2021-01-01', '2026-12-31') }}
 )
 
 SELECT
