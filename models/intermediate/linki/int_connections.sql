@@ -1,4 +1,5 @@
 SELECT
+    FARM_FINGERPRINT(CONCAT(`First Name`, `Last Name`, COALESCE(URL, ''))) AS id_connection,
     `First Name`                AS first_name,
     `Last Name`                 AS last_name,
     URL                         AS url,

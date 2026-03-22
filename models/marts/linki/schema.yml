@@ -4,16 +4,28 @@ models:
   - name: fct_posts
     description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post - combine les impressions et interactions des posts LinkedIn"
     columns:
-      - name: post_ID
+      - name: id_post
         description: "Clé surrogate du post générée via FARM_FINGERPRINT de l'URL du post"
+        tests:
+          - not_null
+          - unique
       - name: url_post
         description: "URL unique du post LinkedIn"
       - name: date_publication_post
         description: "Date de publication du post"
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: interactions
         description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - par défaut 0 si aucune interaction"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
 
@@ -35,11 +47,13 @@ models:
   - name: dim_calendar
     description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2026 - pont de jointure entre fct_posts et fct_abonnes"
     columns:
-      - name: date
-        description: "Date calendaire (clé naturelle)"
+      - name: id_calendar
+        description: "Clé surrogate du calendrier (numéro séquentiel unique)"
         tests:
           - not_null
           - unique
+      - name: date
+        description: "Date calendaire (clé naturelle)"
       - name: annee
         description: "Année (2021-2026)"
       - name: trimestre
@@ -62,8 +76,11 @@ models:
   - name: dim_posts
     description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique - enrichissement des posts avec métadonnées"
     columns:
-      - name: post_ID
+      - name: id_post
         description: "Clé surrogate du post (FARM_FINGERPRINT de l'URL)"
+        tests:
+          - not_null
+          - unique
       - name: url_post
         description: "URL unique et complète du post LinkedIn"
       - name: date_publication_post
@@ -74,16 +91,25 @@ models:
   - name: dim_connections
     description: "Dimension des connexions LinkedIn - grain : 1 ligne par contact unique - profils des connexions réseau"
     columns:
-      - name: connection_id
+      - name: id_connection
         description: "Clé surrogate de la connexion (FARM_FINGERPRINT concaténant nom, prénom et URL)"
+        tests:
+          - not_null
+          - unique
       - name: first_name
         description: "Prénom du contact LinkedIn"
       - name: last_name
         description: "Nom de famille du contact LinkedIn"
       - name: url
         description: "URL unique du profil LinkedIn du contact"
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^https://www\.linkedin\.com/.*'
       - name: email_address
         description: "Adresse email du contact"
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -94,8 +120,11 @@ models:
   - name: dim_invitations
     description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique - historique des interactions réseau"
     columns:
-      - name: invitation_ID
+      - name: id_invitation
         description: "Clé surrogate de l'invitation (FARM_FINGERPRINT concaténant expéditeur, destinataire et date)"
+        tests:
+          - not_null
+          - unique
       - name: sender
         description: "Nom complet de la personne qui a envoyé l'invitation"
       - name: recipient
@@ -114,23 +143,56 @@ models:
   - name: dim_area
     description: "Dimension des zones géographiques/lieux LinkedIn - grain : 1 ligne par zone unique - répartition géographique de l'audience"
     columns:
+      - name: id_area
+        description: "Clé surrogate de la zone (FARM_FINGERPRINT du libellé)"
+        tests:
+          - not_null
+          - unique
       - name: areas
         description: "Libellé de la zone géographique ou lieu"
       - name: pourcentage
         description: "Pourcentage de l'audience situé dans cette zone géographique"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric
 
   - name: dim_hierarchy_level
     description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau - segmentation par niveau de responsabilité"
     columns:
+      - name: id_hierarchy_level
+        description: "Clé surrogate du niveau (FARM_FINGERPRINT du libellé)"
+        tests:
+          - not_null
+          - unique
       - name: hierarchy_level
         description: "Libellé du niveau hiérarchique (directeur, manager, employé, etc.)"
       - name: percent
         description: "Pourcentage de l'audience correspondant à ce niveau hiérarchique"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric
 
   - name: dim_sectors
     description: "Dimension des secteurs d'activité LinkedIn - grain : 1 ligne par secteur - répartition par domaine d'activité"
     columns:
+      - name: id_sector
+        description: "Clé surrogate du secteur (FARM_FINGERPRINT du libellé)"
+        tests:
+          - not_null
+          - unique
       - name: sectors
         description: "Libellé du secteur d'activité"
       - name: pourcentage
         description: "Pourcentage de l'audience travaillant dans ce secteur"
+        tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric

@@ -1,5 +1,6 @@
 WITH posts AS (
     SELECT
+        id_post AS post_id,
         url_post,
         date_publication_post,
         impressions
@@ -15,7 +16,7 @@ interactions AS (
 )
 
 SELECT
-    FARM_FINGERPRINT(p.url_post) AS post_ID,
+    p.post_id,
     p.url_post,
     p.date_publication_post,
     p.impressions,
