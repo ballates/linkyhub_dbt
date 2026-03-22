@@ -9,6 +9,7 @@ WITH date_spine AS (
 )
 
 SELECT
+    ROW_NUMBER() OVER (ORDER BY date) AS id_calendar,
     date,
     EXTRACT(YEAR FROM date)                 AS annee,
     EXTRACT(QUARTER FROM date)              AS trimestre,

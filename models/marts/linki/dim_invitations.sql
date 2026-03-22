@@ -1,5 +1,5 @@
 SELECT
-    FARM_FINGERPRINT(CONCAT(sender, COALESCE(recipient, ''), COALESCE(sent_at, ''))) AS invitation_ID,
+    id_invitation,
     sender,
     recipient,
     direction,
