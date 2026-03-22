@@ -4,8 +4,8 @@ models:
   - name: fct_posts
     description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post - combine les impressions et interactions des posts LinkedIn"
     columns:
-      - name: id_post
-        description: "Clé surrogate du post générée via FARM_FINGERPRINT de l'URL du post"
+      - name: post_id
+        description: "Clé étrangère référençant dim_posts (id_post de la dimension)"
         tests:
           - not_null
           - unique
@@ -41,8 +41,12 @@ models:
         description: "Nombre de nouveaux abonnés acquis ce jour"
         tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
+    # Table validation: fct_abonnes contains daily aggregated data from facts
 
   - name: dim_calendar
     description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2026 - pont de jointure entre fct_posts et fct_abonnes"
@@ -104,12 +108,12 @@ models:
         description: "URL unique du profil LinkedIn du contact"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^https://www\.linkedin\.com/.*'
+              regex: '^https://www\\.linkedin\\.com/.*'
       - name: email_address
         description: "Adresse email du contact"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position

@@ -1,9 +1,14 @@
 SELECT
-    FARM_FINGERPRINT(CONCAT(`First Name`, `Last Name`, COALESCE(URL, ''))) AS id_connection,
+    FARM_FINGERPRINT(CONCAT(
+        COALESCE(`First Name`, 'NO_FNAME'), '|',
+        COALESCE(`Last Name`, 'NO_LNAME'), '|',
+        COALESCE(URL, 'NO_URL'), '|',
+        COALESCE(`Email Address`, 'NO_EMAIL')
+    )) AS id_connection,
     `First Name`                AS first_name,
     `Last Name`                 AS last_name,
     URL                         AS url,
-    `Email Address`             AS email_address,
+    {{ normalize_email('`Email Address`') }} AS email_address,
     Company                     AS company,
     Position                    AS position,
     COALESCE(

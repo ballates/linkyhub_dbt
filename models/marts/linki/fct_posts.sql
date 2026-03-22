@@ -1,6 +1,6 @@
 WITH posts AS (
     SELECT
-        id_post AS post_id,
+        id_post,
         url_post,
         date_publication_post,
         impressions
@@ -16,7 +16,7 @@ interactions AS (
 )
 
 SELECT
-    p.post_id,
+    p.id_post AS post_id,
     p.url_post,
     p.date_publication_post,
     p.impressions,
