@@ -91,44 +91,6 @@ models:
       - name: connected_on
         description: "Date à laquelle la connexion a été établie (avec normalisation des formats français/anglais)"
 
-  - name: dim_certifications
-    description: "Dimension des certifications LinkedIn - grain : 1 ligne par certification unique - portfolio des qualifications obtenues"
-    columns:
-      - name: certification_id
-        description: "Clé surrogate de la certification (FARM_FINGERPRINT du nom et de l'organisme)"
-      - name: name
-        description: "Nom de la certification obtenue"
-      - name: url
-        description: "Lien vers la certification en ligne pour vérification"
-      - name: authority
-        description: "Organisme ou entreprise qui a délivré la certification"
-      - name: started_on
-        description: "Date de début de la formation/certification"
-      - name: finished_on
-        description: "Date d'expiration ou de complétion de la certification"
-      - name: license_number
-        description: "Numéro de licence ou identifiant unique de la certification"
-
-  - name: dim_learning
-    description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par contenu de formation unique - parcours d'apprentissage"
-    columns:
-      - name: learning_id
-        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre et du type)"
-      - name: title
-        description: "Titre du contenu de formation LinkedIn Learning"
-      - name: description
-        description: "Description détaillée du contenu de formation"
-      - name: type
-        description: "Type de contenu éducatif (Course, Video, etc.)"
-      - name: last_watched_date
-        description: "Date et heure de dernière consultation du contenu"
-      - name: completed_at
-        description: "Date à laquelle le contenu a été complété/terminé"
-      - name: saved
-        description: "Booléen : TRUE si le contenu a été sauvegardé, FALSE sinon"
-      - name: notes
-        description: "Notes personnelles prises lors de la consultation du contenu"
-
   - name: dim_invitations
     description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique - historique des interactions réseau"
     columns:
@@ -157,14 +119,6 @@ models:
       - name: pourcentage
         description: "Pourcentage de l'audience situé dans cette zone géographique"
 
-  - name: dim_company
-    description: "Dimension des entreprises de l'audience LinkedIn - grain : 1 ligne par entreprise - segmentation par secteur d'activité"
-    columns:
-      - name: companies
-        description: "Nom ou libellé de l'entreprise"
-      - name: pourcentage
-        description: "Pourcentage de l'audience proposant cette entreprise"
-
   - name: dim_hierarchy_level
     description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau - segmentation par niveau de responsabilité"
     columns:
@@ -180,19 +134,3 @@ models:
         description: "Libellé du secteur d'activité"
       - name: pourcentage
         description: "Pourcentage de l'audience travaillant dans ce secteur"
-
-  - name: dim_size_company
-    description: "Dimension de la taille des entreprises LinkedIn - grain : 1 ligne par classe de taille - segmentation par effectifs"
-    columns:
-      - name: size_companies
-        description: "Libellé de la classe de taille d'entreprise (PME, ETI, GE, etc.)"
-      - name: pourcentage
-        description: "Pourcentage de l'audience travaillant dans des entreprises de cette taille"
-
-  - name: dim_type_company
-    description: "Dimension des intitulés de poste LinkedIn - grain : 1 ligne par intitulé unique - segmentation par fonction professionnelle"
-    columns:
-      - name: type_company
-        description: "Intitulé du poste ou fonction professionnelle"
-      - name: pourcentage
-        description: "Pourcentage de l'audience occupant cet intitulé de poste"
