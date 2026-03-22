@@ -11,10 +11,10 @@ WITH posts AS (
         url_post,
         date_publication_post,
         impressions,
-        CURRENT_TIMESTAMP() AS _at_load
+        _at_load
     FROM {{ ref('int_posts') }}
     {% if is_incremental() %}
-      WHERE CURRENT_TIMESTAMP() > (SELECT COALESCE(MAX(_at_load), '1900-01-01') FROM {{ this }})
+      WHERE _at_load > (SELECT COALESCE(MAX(_at_load), CAST('1900-01-01' AS TIMESTAMP)) FROM {{ this }})
     {% endif %}
 ),
 
