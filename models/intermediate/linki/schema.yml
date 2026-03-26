@@ -11,6 +11,8 @@ models:
           - unique
       - name: sender
         description: "Nom complet de l'expéditeur de l'invitation"
+        tests:
+          - not_null
       - name: recipient
         description: "Nom complet du destinataire de l'invitation"
       - name: sent_at
@@ -19,51 +21,69 @@ models:
         description: "Message personnalisé accompagnant l'invitation"
       - name: direction
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+        tests:
+          - accepted_values:
+              values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
         description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
 
   - name: int_certifications
     description: "Table intermédiaire des certifications LinkedIn avec normalisation des types"
     columns:
       - name: name
         description: "Nom de la certification obtenue"
+        tests:
+          - not_null
       - name: url
         description: "Lien vers la certification en ligne"
       - name: authority
         description: "Organisme ou entreprise qui a délivré la certification"
       - name: started_on
-        description: "Date de début de la certification"
+        description: "Date de début de la certification (TIMESTAMP)"
       - name: finished_on
-        description: "Date d'expiration de la certification"
+        description: "Date d'expiration de la certification (TIMESTAMP)"
       - name: license_number
         description: "Numéro de licence ou identifiant unique de la certification"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_learning
     description: "Table intermédiaire des formations LinkedIn Learning avec normalisation des types"
     columns:
+      - name: id_learning
+        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre)"
+        tests:
+          - not_null
+          - unique
       - name: title
         description: "Titre du contenu de formation LinkedIn Learning"
+        tests:
+          - not_null
       - name: description
         description: "Description détaillée du contenu de formation"
       - name: type
         description: "Type de contenu : Course, Video, etc."
       - name: last_watched_date
-        description: "Date de dernière consultation du contenu"
+        description: "Date de dernière consultation du contenu (TIMESTAMP)"
       - name: completed_at
-        description: "Date à laquelle le contenu a été complété"
+        description: "Date à laquelle le contenu a été complété (TIMESTAMP, peut être NULL)"
       - name: saved
         description: "Indique si le contenu a été sauvegardé"
       - name: notes
         description: "Notes prises sur le contenu"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_connections
     description: "Table intermédiaire des connexions LinkedIn avec normalisation des types"
     columns:
@@ -71,6 +91,7 @@ models:
         description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email) - peut avoir doublons si source contient des connexions identiques"
         tests:
           - not_null
+          - unique
       - name: first_name
         description: "Prénom du contact LinkedIn"
       - name: last_name
@@ -78,55 +99,89 @@ models:
       - name: url
         description: "Lien vers le profil LinkedIn du contact"
       - name: email_address
-        description: "Adresse email du contact"
+        description: "Adresse email du contact (normalisée en minuscules)"
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
         description: "Poste occupé par le contact"
       - name: connected_on
-        description: "Date à laquelle la connexion a été établie"
+        description: "Date à laquelle la connexion a été établie (DATE)"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_abonnes
     description: "Table intermédiaire des abonnés LinkedIn avec normalisation des types"
     columns:
       - name: date
-        description: "Date de référence de la métrique"
+        description: "Date de référence de la métrique (clé naturelle)"
+        tests:
+          - not_null
+          - unique
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés sur la période"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_donnees_geo
     description: "Table intermédiaire des données géographiques LinkedIn avec normalisation des types"
     columns:
       - name: zones_geographiques
-        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+        description: "Catégorie démographique (ex: Lieux, Secteurs, Niveau hiérarchique)"
+        tests:
+          - not_null
       - name: id_value
-        description: "Clé surrogate de la valeur géographique (FARM_FINGERPRINT)"
+        description: "Clé surrogate de la valeur (FARM_FINGERPRINT catégorie+valeur) — inclut la catégorie pour éviter les collisions inter-catégories"
         tests:
           - not_null
           - unique
       - name: pourcentage
         description: "Pourcentage de l'audience correspondant à la catégorie"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
       - name: valeur
-        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+        description: "Libellé associé à la catégorie démographique"
+        tests:
+          - not_null
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_interactions
     description: "Table intermédiaire des interactions sur les posts LinkedIn avec normalisation des types"
     columns:
       - name: url_post
         description: "URL du post LinkedIn"
+        tests:
+          - not_null
       - name: date_publication_post
-        description: "Date de publication du post"
+        description: "Date de publication du post (DATE)"
+        tests:
+          - not_null
       - name: interactions
-        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+        description: "Nombre total d'interactions (likes, commentaires, partages)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
- 
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: int_posts
     description: "Table intermédiaire des posts LinkedIn avec normalisation des types"
     columns:
@@ -137,23 +192,21 @@ models:
           - unique
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: url_post
         description: "URL du post LinkedIn"
+        tests:
+          - not_null
+          - unique
       - name: date_publication_post
-        description: "Date de publication du post"
+        description: "Date de publication du post (DATE)"
+        tests:
+          - not_null
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null

@@ -5,6 +5,5 @@ SELECT
     authority,
     started_on,
     finished_on,
-    license_number,
-    _at_load
-FROM {{ ref('stg_certifications') }}
+    license_number
+FROM {{ ref('int_certifications') }}

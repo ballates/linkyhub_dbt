@@ -1,4 +1,4 @@
-SELECT DISTINCT
+SELECT
     id_post,
     url_post,
     date_publication_post,

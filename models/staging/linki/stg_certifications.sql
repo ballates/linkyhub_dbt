@@ -1,4 +1,9 @@
 SELECT
+    FARM_FINGERPRINT(CONCAT(
+        COALESCE(Name, ''), '|',
+        COALESCE(Authority, ''), '|',
+        COALESCE(`License Number`, '')
+    ))                                           AS id_certification,
     Name                                         AS name,
     Url                                          AS url,
     Authority                                    AS authority,
