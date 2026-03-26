@@ -1,5 +1,5 @@
 WITH date_spine AS (
-    {{ generate_date_spine('2021-01-01', '2026-12-31') }}
+    {{ generate_date_spine('2021-01-01', '2027-12-31') }}
 )
 
 SELECT
