@@ -4,9 +4,16 @@ models:
   - name: stg_invitations
     description: "Table staging des invitations LinkedIn"
     columns:
-      - name: from
+      - name: id_invitation
+        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT expéditeur+destinataire+date)"
+        tests:
+          - not_null
+          - unique
+      - name: sender
         description: "Nom complet de l'expéditeur de l'invitation"
-      - name: to
+        tests:
+          - not_null
+      - name: recipient
         description: "Nom complet du destinataire de l'invitation"
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
@@ -14,129 +21,175 @@ models:
         description: "Message personnalisé accompagnant l'invitation"
       - name: direction
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+        tests:
+          - accepted_values:
+              values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
         description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_certifications
     description: "Table staging des certifications LinkedIn"
     columns:
-      - name: Name
+      - name: name
         description: "Nom de la certification obtenue"
-      - name: Url
+        tests:
+          - not_null
+      - name: url
         description: "Lien vers la certification en ligne"
-      - name: Authority
+      - name: authority
         description: "Organisme ou entreprise qui a délivré la certification"
-      - name: Started On
-        description: "Date de début de la certification"
-      - name: Finished On
-        description: "Date d'expiration de la certification"
-      - name: License Number
+      - name: started_on
+        description: "Date de début de la certification (TIMESTAMP)"
+      - name: finished_on
+        description: "Date d'expiration de la certification (TIMESTAMP)"
+      - name: license_number
         description: "Numéro de licence ou identifiant unique de la certification"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_connections
     description: "Table staging des connexions LinkedIn"
     columns:
-      - name: First Name
+      - name: id_connection
+        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
+        tests:
+          - not_null
+      - name: first_name
         description: "Prénom du contact LinkedIn"
-      - name: Last Name
+      - name: last_name
         description: "Nom de famille du contact LinkedIn"
-      - name: URL
+      - name: url
         description: "Lien vers le profil LinkedIn du contact"
-      - name: Email Address
-        description: "Adresse email du contact"
-      - name: Company
+      - name: email_address
+        description: "Adresse email du contact (normalisée en minuscules)"
+      - name: company
         description: "Entreprise actuelle du contact"
-      - name: Position
+      - name: position
         description: "Poste occupé par le contact"
-      - name: Connected On
-        description: "Date à laquelle la connexion a été établie"
+      - name: connected_on
+        description: "Date à laquelle la connexion a été établie (DATE, multi-format)"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_learning
     description: "Table staging des formations LinkedIn Learning"
     columns:
-      - name: Title
+      - name: title
         description: "Titre du contenu de formation LinkedIn Learning"
-      - name: Description
+      - name: description
         description: "Description détaillée du contenu de formation"
-      - name: Type
+      - name: type
         description: "Type de contenu : Course, Video, etc."
-      - name: Last Watched Date
-        description: "Date de dernière consultation du contenu"
-      - name: Completed At
-        description: "Date à laquelle le contenu a été complété"
-      - name: Saved
+      - name: last_watched_date
+        description: "Date de dernière consultation du contenu (STRING brut)"
+      - name: completed_at
+        description: "Date à laquelle le contenu a été complété (STRING brut)"
+      - name: saved
         description: "Indique si le contenu a été sauvegardé"
-      - name: Notes
+      - name: notes
         description: "Notes prises sur le contenu"
-      - name: string_field_7
+      - name: field_extra
         description: "Colonne technique sans valeur identifiée"
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_abonnes
     description: "Table staging des abonnés LinkedIn"
     columns:
-      - name: _line
-        description: "Numéro de ligne technique"
-      - name: _fivetran_synced
-        description: "Date et heure de la dernière synchronisation Fivetran"
       - name: date_
-        description: "Date de l'abonnement"
+        description: "Date de référence de la métrique (clé naturelle)"
+        tests:
+          - not_null
+          - unique
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés sur la période"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
 
   - name: stg_donnees_geo
     description: "Table staging des données démographiques LinkedIn"
     columns:
-      - name: _line
-        description: "Numéro de ligne technique"
-      - name: _fivetran_synced
-        description: "Date et heure de la dernière synchronisation Fivetran"
       - name: principales_donnees_demographiques
-        description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+        description: "Catégorie démographique (ex: Lieux, Secteurs, Niveau hiérarchique)"
+        tests:
+          - not_null
       - name: pourcentage
         description: "Pourcentage de l'audience correspondant à la catégorie"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
       - name: valeur
-        description: "Valeur absolue ou libellé associé à la catégorie démographique"
+        description: "Libellé associé à la catégorie démographique"
+        tests:
+          - not_null
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_interactions
     description: "Table staging des interactions sur les posts LinkedIn"
     columns:
-      - name: _line
-        description: "Numéro de ligne technique"
-      - name: _fivetran_synced
-        description: "Date et heure de la dernière synchronisation Fivetran"
       - name: url_du_post
         description: "URL du post LinkedIn"
+        tests:
+          - not_null
       - name: date_de_publication_du_post
-        description: "Date de publication du post"
+        description: "Date de publication du post (STRING brut)"
+        tests:
+          - not_null
       - name: interactions
-        description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+        description: "Nombre total d'interactions (likes, commentaires, partages)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
-  
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
   - name: stg_posts
     description: "Table staging des posts LinkedIn"
     columns:
-      - name: _line
-        description: "Numéro de ligne technique"
-      - name: _fivetran_synced
-        description: "Date et heure de la dernière synchronisation Fivetran"
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: url_du_post
-        description: "URL du post LinkedIn"
+        description: "URL du post LinkedIn (clé naturelle)"
+        tests:
+          - not_null
       - name: date_de_publication_du_post
-        description: "Date de publication du post"
+        description: "Date de publication du post (STRING brut)"
+        tests:
+          - not_null
       - name: _at_load
-        description: "Date de chargement de la ligne / Line loading date"
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null

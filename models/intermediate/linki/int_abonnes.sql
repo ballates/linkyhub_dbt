@@ -1,5 +1,8 @@
 SELECT
-    SAFE.PARSE_DATE('%d/%m/%Y', date_)  AS date,
+    COALESCE(
+        SAFE_CAST(date_ AS DATE),
+        SAFE.PARSE_DATE('%d/%m/%Y', CAST(date_ AS STRING))
+    )                                   AS date,
     nouveaux_abonnes,
-    CURRENT_TIMESTAMP()                 AS _at_load
+    _at_load
 FROM {{ ref('stg_abonnes') }}

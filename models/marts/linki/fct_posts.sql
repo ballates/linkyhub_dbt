@@ -10,11 +10,10 @@ WITH posts AS (
         id_post,
         url_post,
         date_publication_post,
-        impressions,
-        _at_load
+        impressions
     FROM {{ ref('int_posts') }}
     {% if is_incremental() %}
-      WHERE _at_load > (SELECT COALESCE(MAX(_at_load), CAST('1900-01-01' AS TIMESTAMP)) FROM {{ this }})
+      WHERE date_publication_post > (SELECT COALESCE(MAX(date_publication_post), CAST('1900-01-01' AS DATE)) FROM {{ this }})
     {% endif %}
 ),
 
@@ -32,7 +31,7 @@ SELECT
     p.date_publication_post,
     p.impressions,
     COALESCE(i.interactions, 0)     AS interactions,
-    p._at_load
+    CURRENT_TIMESTAMP()             AS _at_load
 FROM posts p
 LEFT JOIN interactions i
     ON p.url_post = i.url_post
