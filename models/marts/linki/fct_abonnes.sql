@@ -1,7 +1,7 @@
 {{ config(
     materialized='incremental',
     unique_key=['date'],
-    on_schema_change='fail'
+    on_schema_change='sync_all_columns'
 ) }}
 
 SELECT
