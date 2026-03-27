@@ -1,0 +1,70 @@
+name: dbt Auto-trigger BigQuery
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'  # toutes les 30 minutes
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install google-cloud-bigquery "dbt-bigquery>=1.11.0"
+
+      - name: Write GCP credentials
+        run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
+
+      - name: Vérifier si les tables BigQuery ont changé
+        id: check
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp_key.json
+        run: |
+          python3 << 'EOF'
+          import os
+          from google.cloud import bigquery
+
+          client = bigquery.Client(project="prime-force-478609-s4")
+
+          datasets = ["linki_bucket_set", "google_drive"]
+          project = "prime-force-478609-s4"
+
+          changed = False
+          for dataset in datasets:
+              query = f"""
+              SELECT COUNT(*) as cnt
+              FROM `{project}.{dataset}.INFORMATION_SCHEMA.TABLES`
+              WHERE last_modified_time >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 MINUTE)
+              """
+              result = client.query(query).result()
+              for row in result:
+                  if row.cnt > 0:
+                      changed = True
+                      print(f"Changement détecté dans le dataset : {dataset}")
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"changed={'true' if changed else 'false'}\n")
+
+          print(f"Tables modifiées : {changed}")
+          EOF
+
+      - name: dbt deps
+        if: steps.check.outputs.changed == 'true'
+        run: dbt deps --profiles-dir .
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
+
+      - name: dbt build (prod)
+        if: steps.check.outputs.changed == 'true'
+        run: dbt build --profiles-dir . --target prod
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
