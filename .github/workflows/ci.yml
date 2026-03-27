@@ -33,8 +33,3 @@ jobs:
         run: dbt compile --profiles-dir . --target dev
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
-
-      - name: dbt build (dev)
-        run: dbt build --profiles-dir . --target dev
-        env:
-          DBT_KEYFILE: /tmp/gcp_key.json
