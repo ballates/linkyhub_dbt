@@ -23,6 +23,9 @@ interactions AS (
         date_publication_post,
         interactions
     FROM {{ ref('int_interactions') }}
+    {% if is_incremental() %}
+      WHERE date_publication_post > (SELECT COALESCE(MAX(date_publication_post), CAST('1900-01-01' AS DATE)) FROM {{ this }})
+    {% endif %}
 )
 
 SELECT
