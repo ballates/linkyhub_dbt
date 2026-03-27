@@ -6,3 +6,4 @@ SELECT
     nouveaux_abonnes,
     _at_load
 FROM {{ ref('stg_abonnes') }}
+QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY nouveaux_abonnes DESC) = 1

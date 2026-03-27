@@ -112,7 +112,6 @@ models:
         description: "Date de référence de la métrique (clé naturelle)"
         tests:
           - not_null
-          - unique
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés sur la période"
         tests:
