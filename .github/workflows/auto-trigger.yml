@@ -2,7 +2,7 @@ name: dbt Auto-trigger BigQuery
 
 on:
   schedule:
-    - cron: '*/30 * * * *'  # toutes les 30 minutes
+    - cron: '0 6 * * 1,4,6'  # lundi, jeudi et samedi à 8h (heure France été, UTC+2)
 
 jobs:
   check-and-build:
