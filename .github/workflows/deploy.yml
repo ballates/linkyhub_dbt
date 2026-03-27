@@ -44,6 +44,27 @@ jobs:
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
+      - name: Filtrer les packages externes du manifest
+        run: |
+          python3 << 'EOF'
+          import json
+
+          with open("target/manifest.json") as f:
+              manifest = json.load(f)
+
+          for key in ["nodes", "sources", "macros", "exposures", "metrics"]:
+              if key in manifest:
+                  manifest[key] = {
+                      k: v for k, v in manifest[key].items()
+                      if v.get("package_name") == "linkyhub_dbt"
+                  }
+
+          with open("target/manifest.json", "w") as f:
+              json.dump(manifest, f)
+
+          print("Packages externes supprimés du manifest")
+          EOF
+
       - name: Préparer les docs pour GitHub Pages
         run: |
           mkdir -p /tmp/docs
