@@ -40,7 +40,7 @@ jobs:
           DBT_KEYFILE: /tmp/gcp_key.json
 
       - name: dbt docs generate
-        run: dbt docs generate --profiles-dir . --target prod
+        run: dbt docs generate --profiles-dir . --target prod --select "path:models"
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
