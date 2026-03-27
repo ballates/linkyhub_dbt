@@ -66,7 +66,7 @@ models:
           - not_null
 
   - name: dim_calendar
-    description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2030 - pont de jointure entre fct_posts et fct_abonnes"
+    description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2027 - pont de jointure entre fct_posts et fct_abonnes"
     columns:
       - name: id_calendar
         description: "Clé surrogate du calendrier (numéro séquentiel unique)"
@@ -79,12 +79,12 @@ models:
           - not_null
           - unique
       - name: annee
-        description: "Année (2021-2030)"
+        description: "Année (2021-2027)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
               min_value: 2021
-              max_value: 2030
+              max_value: 2027
       - name: trimestre
         description: "Trimestre (1, 2, 3, ou 4)"
         tests:

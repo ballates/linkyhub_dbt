@@ -36,6 +36,11 @@ models:
   - name: int_certifications
     description: "Table intermédiaire des certifications LinkedIn avec normalisation des types"
     columns:
+      - name: id_certification
+        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        tests:
+          - not_null
+          - unique
       - name: name
         description: "Nom de la certification obtenue"
         tests:

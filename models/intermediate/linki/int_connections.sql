@@ -9,3 +9,4 @@ SELECT
     connected_on,
     _at_load
 FROM {{ ref('stg_connections') }}
+QUALIFY ROW_NUMBER() OVER (PARTITION BY id_connection ORDER BY connected_on DESC NULLS LAST) = 1
