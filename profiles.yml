@@ -13,7 +13,7 @@ linkyhub_dbt:
       type: bigquery
       method: service-account
       project: prime-force-478609-s4
-      dataset: DEV
+      dataset: PROD
       location: US
       threads: 4
       keyfile: "{{ env_var('DBT_KEYFILE') }}"
