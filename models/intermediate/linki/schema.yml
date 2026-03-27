@@ -93,7 +93,7 @@ models:
     description: "Table intermédiaire des connexions LinkedIn avec normalisation des types"
     columns:
       - name: id_connection
-        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email) - peut avoir doublons si source contient des connexions identiques"
+        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
         tests:
           - not_null
           - unique
