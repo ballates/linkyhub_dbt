@@ -36,6 +36,10 @@ models:
   - name: stg_certifications
     description: "Table staging des certifications LinkedIn"
     columns:
+      - name: id_certification
+        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        tests:
+          - not_null
       - name: name
         description: "Nom de la certification obtenue"
         tests:

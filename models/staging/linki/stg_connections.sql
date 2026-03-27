@@ -1,3 +1,5 @@
+{{ config(materialized='view') }}
+
 SELECT
      FARM_FINGERPRINT(CONCAT(
         COALESCE(`First Name`, 'NO_FNAME'), '|',

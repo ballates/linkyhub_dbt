@@ -1,4 +1,4 @@
-SELECT DISTINCT
+SELECT 
     id_connection,
     first_name,
     last_name,
