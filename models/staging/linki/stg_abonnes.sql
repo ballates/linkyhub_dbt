@@ -1,5 +1,3 @@
-{{ config(materialized='view') }}
-
 SELECT
     date_,
     nouveaux_abonnes,

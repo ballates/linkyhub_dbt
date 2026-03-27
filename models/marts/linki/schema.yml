@@ -4,18 +4,43 @@ models:
   - name: fct_posts
     description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post - combine les impressions et interactions des posts LinkedIn"
     columns:
-      - name: post_ID
-        description: "Clé surrogate du post générée via FARM_FINGERPRINT de l'URL du post"
+      - name: post_id
+        description: "Clé étrangère référençant dim_posts (id_post de la dimension)"
+        tests:
+          - not_null
+          - unique
+          - relationships:
+              to: ref('dim_posts')
+              field: id_post
       - name: url_post
         description: "URL unique du post LinkedIn"
+        tests:
+          - not_null
       - name: date_publication_post
         description: "Date de publication du post"
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_calendar')
+              field: date
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: interactions
         description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - par défaut 0 si aucune interaction"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 1000000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
+        tests:
+          - not_null
 
   - name: fct_abonnes
     description: "Table de fait des abonnés LinkedIn - grain : 1 ligne par jour - suivi de l'évolution du nombre d'abonnés"
@@ -25,121 +50,160 @@ models:
         tests:
           - not_null
           - unique
+          - relationships:
+              to: ref('dim_calendar')
+              field: date
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés acquis ce jour"
         tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 10000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
+        tests:
+          - not_null
 
   - name: dim_calendar
-    description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2026 - pont de jointure entre fct_posts et fct_abonnes"
+    description: "Table de calendrier - grain : 1 ligne par jour couvrant 2021-2027 - pont de jointure entre fct_posts et fct_abonnes"
     columns:
+      - name: id_calendar
+        description: "Clé surrogate du calendrier (numéro séquentiel unique)"
+        tests:
+          - not_null
+          - unique
       - name: date
         description: "Date calendaire (clé naturelle)"
         tests:
           - not_null
           - unique
       - name: annee
-        description: "Année (2021-2026)"
+        description: "Année (2021-2027)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 2021
+              max_value: 2027
       - name: trimestre
         description: "Trimestre (1, 2, 3, ou 4)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 4
       - name: mois
         description: "Mois (1 à 12)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 12
       - name: nom_mois
         description: "Nom du mois en anglais (January, February, etc.)"
+        tests:
+          - not_null
       - name: nom_mois_court
         description: "Abréviation du mois en anglais (Jan, Feb, etc.)"
+        tests:
+          - not_null
       - name: semaine
-        description: "Numéro de semaine dans l'année (ISO 8601)"
+        description: "Numéro de semaine dans l'année"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 53
       - name: jour
         description: "Jour du mois (1 à 31)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              max_value: 31
       - name: nom_jour
         description: "Nom du jour en anglais (Monday, Tuesday, etc.)"
+        tests:
+          - not_null
       - name: est_weekend
         description: "Booléen : TRUE si samedi ou dimanche, FALSE sinon"
+        tests:
+          - not_null
 
   - name: dim_posts
-    description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique - enrichissement des posts avec métadonnées"
+    description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique"
     columns:
-      - name: post_ID
+      - name: id_post
         description: "Clé surrogate du post (FARM_FINGERPRINT de l'URL)"
+        tests:
+          - not_null
+          - unique
       - name: url_post
         description: "URL unique et complète du post LinkedIn"
+        tests:
+          - not_null
+          - unique
       - name: date_publication_post
         description: "Date de publication du post"
+        tests:
+          - not_null
       - name: label_post
         description: "Libellé formaté du post (ex: 'Post du 21-03-2026')"
+        tests:
+          - not_null
 
   - name: dim_connections
-    description: "Dimension des connexions LinkedIn - grain : 1 ligne par contact unique - profils des connexions réseau"
+    description: "Dimension des connexions LinkedIn - grain : 1 ligne par contact unique"
     columns:
-      - name: connection_id
-        description: "Clé surrogate de la connexion (FARM_FINGERPRINT concaténant nom, prénom et URL)"
+      - name: id_connection
+        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
+        tests:
+          - not_null
+          - unique
       - name: first_name
         description: "Prénom du contact LinkedIn"
+        tests:
+          - not_null
       - name: last_name
         description: "Nom de famille du contact LinkedIn"
       - name: url
         description: "URL unique du profil LinkedIn du contact"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^https://www\\.linkedin\\.com/.*'
       - name: email_address
-        description: "Adresse email du contact"
+        description: "Adresse email du contact (normalisée en minuscules)"
+        tests:
+          - dbt_expectations.expect_column_values_to_match_regex:
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
         description: "Poste occupé par le contact dans son entreprise"
       - name: connected_on
-        description: "Date à laquelle la connexion a été établie (avec normalisation des formats français/anglais)"
-
-  - name: dim_certifications
-    description: "Dimension des certifications LinkedIn - grain : 1 ligne par certification unique - portfolio des qualifications obtenues"
-    columns:
-      - name: certification_id
-        description: "Clé surrogate de la certification (FARM_FINGERPRINT du nom et de l'organisme)"
-      - name: name
-        description: "Nom de la certification obtenue"
-      - name: url
-        description: "Lien vers la certification en ligne pour vérification"
-      - name: authority
-        description: "Organisme ou entreprise qui a délivré la certification"
-      - name: started_on
-        description: "Date de début de la formation/certification"
-      - name: finished_on
-        description: "Date d'expiration ou de complétion de la certification"
-      - name: license_number
-        description: "Numéro de licence ou identifiant unique de la certification"
-
-  - name: dim_learning
-    description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par contenu de formation unique - parcours d'apprentissage"
-    columns:
-      - name: learning_id
-        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre et du type)"
-      - name: title
-        description: "Titre du contenu de formation LinkedIn Learning"
-      - name: description
-        description: "Description détaillée du contenu de formation"
-      - name: type
-        description: "Type de contenu éducatif (Course, Video, etc.)"
-      - name: last_watched_date
-        description: "Date et heure de dernière consultation du contenu"
-      - name: completed_at
-        description: "Date à laquelle le contenu a été complété/terminé"
-      - name: saved
-        description: "Booléen : TRUE si le contenu a été sauvegardé, FALSE sinon"
-      - name: notes
-        description: "Notes personnelles prises lors de la consultation du contenu"
+        description: "Date à laquelle la connexion a été établie"
 
   - name: dim_invitations
-    description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique - historique des interactions réseau"
+    description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique"
     columns:
-      - name: invitation_ID
-        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT concaténant expéditeur, destinataire et date)"
+      - name: id_invitation
+        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT expéditeur+destinataire+date)"
+        tests:
+          - not_null
+          - unique
       - name: sender
         description: "Nom complet de la personne qui a envoyé l'invitation"
+        tests:
+          - not_null
       - name: recipient
         description: "Nom complet de la personne qui a reçu l'invitation"
       - name: direction
-        description: "Sens de l'invitation : OUTGOING (envoyée par l'utilisateur) ou INCOMING (reçue par l'utilisateur)"
+        description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['OUTGOING', 'INCOMING']
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
       - name: message
@@ -150,49 +214,115 @@ models:
         description: "URL du profil LinkedIn de la personne qui a reçu l'invitation"
 
   - name: dim_area
-    description: "Dimension des zones géographiques/lieux LinkedIn - grain : 1 ligne par zone unique - répartition géographique de l'audience"
+    description: "Dimension des zones géographiques LinkedIn - grain : 1 ligne par zone unique"
     columns:
+      - name: id_area
+        description: "Clé surrogate de la zone (FARM_FINGERPRINT catégorie+libellé)"
+        tests:
+          - not_null
+          - unique
       - name: areas
         description: "Libellé de la zone géographique ou lieu"
+        tests:
+          - not_null
       - name: pourcentage
         description: "Pourcentage de l'audience situé dans cette zone géographique"
-
-  - name: dim_company
-    description: "Dimension des entreprises de l'audience LinkedIn - grain : 1 ligne par entreprise - segmentation par secteur d'activité"
-    columns:
-      - name: companies
-        description: "Nom ou libellé de l'entreprise"
-      - name: pourcentage
-        description: "Pourcentage de l'audience proposant cette entreprise"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric
 
   - name: dim_hierarchy_level
-    description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau - segmentation par niveau de responsabilité"
+    description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau"
     columns:
+      - name: id_hierarchy_level
+        description: "Clé surrogate du niveau (FARM_FINGERPRINT catégorie+libellé)"
+        tests:
+          - not_null
+          - unique
       - name: hierarchy_level
         description: "Libellé du niveau hiérarchique (directeur, manager, employé, etc.)"
-      - name: percent
+        tests:
+          - not_null
+      - name: pourcentage
         description: "Pourcentage de l'audience correspondant à ce niveau hiérarchique"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric
+
+  - name: dim_learning
+    description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par formation unique"
+    columns:
+      - name: id_learning
+        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre)"
+        tests:
+          - not_null
+          - unique
+      - name: title
+        description: "Titre du contenu de formation"
+        tests:
+          - not_null
+      - name: description
+        description: "Description détaillée du contenu"
+      - name: type
+        description: "Type de contenu : Course, Video, etc."
+      - name: last_watched_date
+        description: "Date de dernière consultation (TIMESTAMP)"
+      - name: completed_at
+        description: "Date de complétion (TIMESTAMP, peut être NULL)"
+      - name: saved
+        description: "Indique si le contenu a été sauvegardé"
+      - name: notes
+        description: "Notes prises sur le contenu"
+
+  - name: dim_certifications
+    description: "Dimension des certifications LinkedIn - grain : 1 ligne par certification unique"
+    columns:
+      - name: id_certification
+        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        tests:
+          - not_null
+          - unique
+      - name: name
+        description: "Nom de la certification"
+        tests:
+          - not_null
+      - name: url
+        description: "Lien vers la certification en ligne"
+      - name: authority
+        description: "Organisme qui a délivré la certification"
+      - name: started_on
+        description: "Date de début (TIMESTAMP, granularité mensuelle)"
+      - name: finished_on
+        description: "Date d'expiration (TIMESTAMP, granularité mensuelle)"
+      - name: license_number
+        description: "Numéro de licence ou identifiant unique"
 
   - name: dim_sectors
-    description: "Dimension des secteurs d'activité LinkedIn - grain : 1 ligne par secteur - répartition par domaine d'activité"
+    description: "Dimension des secteurs d'activité LinkedIn - grain : 1 ligne par secteur"
     columns:
+      - name: id_sector
+        description: "Clé surrogate du secteur (FARM_FINGERPRINT catégorie+libellé)"
+        tests:
+          - not_null
+          - unique
       - name: sectors
         description: "Libellé du secteur d'activité"
+        tests:
+          - not_null
       - name: pourcentage
         description: "Pourcentage de l'audience travaillant dans ce secteur"
-
-  - name: dim_size_company
-    description: "Dimension de la taille des entreprises LinkedIn - grain : 1 ligne par classe de taille - segmentation par effectifs"
-    columns:
-      - name: size_companies
-        description: "Libellé de la classe de taille d'entreprise (PME, ETI, GE, etc.)"
-      - name: pourcentage
-        description: "Pourcentage de l'audience travaillant dans des entreprises de cette taille"
-
-  - name: dim_type_company
-    description: "Dimension des intitulés de poste LinkedIn - grain : 1 ligne par intitulé unique - segmentation par fonction professionnelle"
-    columns:
-      - name: type_company
-        description: "Intitulé du poste ou fonction professionnelle"
-      - name: pourcentage
-        description: "Pourcentage de l'audience occupant cet intitulé de poste"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              max_value: 100
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: numeric

@@ -1,14 +1,9 @@
 WITH date_spine AS (
-    SELECT date
-    FROM UNNEST(
-        GENERATE_DATE_ARRAY(
-            DATE '2021-01-01',
-            DATE '2026-12-31'
-        )
-    ) AS date
+    {{ generate_date_spine('2021-01-01', '2027-12-31') }}
 )
 
 SELECT
+    ROW_NUMBER() OVER (ORDER BY date) AS id_calendar,
     date,
     EXTRACT(YEAR FROM date)                 AS annee,
     EXTRACT(QUARTER FROM date)              AS trimestre,

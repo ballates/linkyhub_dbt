@@ -1,0 +1,35 @@
+name: dbt Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  dbt-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dbt-bigquery
+        run: pip install "dbt-bigquery>=1.11.0"
+
+      - name: Write GCP credentials
+        run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
+
+      - name: dbt deps
+        run: dbt deps --profiles-dir .
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
+
+      - name: dbt build (prod)
+        run: dbt build --profiles-dir . --target prod
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json

@@ -1,5 +1,6 @@
 SELECT
+ id_value AS id_hierarchy_level,
  valeur AS hierarchy_level,
- CAST(pourcentage AS DECIMAL) AS percent
+ pourcentage
 FROM {{ref('int_donnees_geo')}}
 WHERE zones_geographiques = 'Niveau hiérarchique'

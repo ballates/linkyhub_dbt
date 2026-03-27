@@ -1,5 +1,5 @@
-SELECT DISTINCT
-    FARM_FINGERPRINT(url_post)  AS post_ID,
+SELECT
+    id_post,
     url_post,
     date_publication_post,
     CONCAT('Post du ',FORMAT_DATE('%d-%m-%Y', date_publication_post)) AS label_post
