@@ -1,0 +1,19 @@
+linkyhub_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: prime-force-478609-s4
+      dataset: DEV
+      location: US
+      threads: 4
+      keyfile: "{{ env_var('DBT_KEYFILE') }}"
+    prod:
+      type: bigquery
+      method: service-account
+      project: prime-force-478609-s4
+      dataset: DEV
+      location: USDBT_KEYFILE
+      threads: 4
+      keyfile: "{{ env_var('DBT_KEYFILE') }}"

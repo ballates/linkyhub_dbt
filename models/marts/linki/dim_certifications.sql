@@ -1,5 +1,5 @@
 SELECT
-    FARM_FINGERPRINT(CONCAT(name, COALESCE(authority, ''))) AS certification_id,
+    id_certification,
     name,
     url,
     authority,

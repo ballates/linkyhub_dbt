@@ -1,5 +1,5 @@
 SELECT
-    FARM_FINGERPRINT(CONCAT(title, COALESCE(type, ''))) AS learning_id,
+    id_learning,
     title,
     description,
     type,
@@ -8,3 +8,4 @@ SELECT
     saved,
     notes
 FROM {{ ref('int_learning') }}
+WHERE title IS NOT NULL
