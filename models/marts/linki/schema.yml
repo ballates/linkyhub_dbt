@@ -171,12 +171,12 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^https://www\.linkedin\.com/.*'
+              regex: '^https://www\\.linkedin\\.com/.*'
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
