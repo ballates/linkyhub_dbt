@@ -5,3 +5,4 @@ SELECT
     valeur,
     _at_load
 FROM {{ ref('stg_donnees_geo') }}
+WHERE SAFE_CAST(pourcentage AS NUMERIC) IS NOT NULL

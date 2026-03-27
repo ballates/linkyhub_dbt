@@ -9,3 +9,5 @@ SELECT
     notes,
     _at_load
 FROM {{ ref('stg_learning') }}
+WHERE title IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (PARTITION BY title ORDER BY last_watched_date DESC NULLS LAST) = 1

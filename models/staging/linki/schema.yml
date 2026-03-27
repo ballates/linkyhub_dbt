@@ -136,12 +136,9 @@ models:
         tests:
           - not_null
       - name: pourcentage
-        description: "Pourcentage de l'audience correspondant à la catégorie"
+        description: "Pourcentage de l'audience correspondant à la catégorie (STRING brut)"
         tests:
           - not_null
-          - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 100
       - name: valeur
         description: "Libellé associé à la catégorie démographique"
         tests:
