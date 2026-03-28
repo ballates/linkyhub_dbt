@@ -8,15 +8,17 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ## Table des matières
 
-- [Flux complet des données](#flux-complet-des-données)
-- [Objectif](#objectif)
-- [Sources de données](#sources-de-données)
-- [Modèles](#modèles)
-- [Clés surrogates](#clés-surrogates)
-- [Qualité des données](#qualité-des-données)
-- [Power BI](#power-bi)
-- [CI/CD](#cicd)
-- [Navigation](#navigation)
+| # | Section |
+|---|---|
+| 1 | Flux complet des données |
+| 2 | Objectif |
+| 3 | Sources de données |
+| 4 | Modèles |
+| 5 | Clés surrogates |
+| 6 | Qualité des données |
+| 7 | Power BI |
+| 8 | CI/CD |
+| 9 | Navigation |
 
 ---
 
@@ -24,28 +26,28 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ```mermaid
 flowchart LR
-    subgraph SRC["Sources BigQuery"]
-        S1["🙋 linki_bucket_set\nDépôt manuel"]
-        S2["📥 google_drive\nFivetran"]
+    subgraph SRC[Sources BigQuery]
+        S1[linki_bucket_set]
+        S2[google_drive]
     end
 
-    subgraph BRONZE["🥉 bronze_linki"]
-        STG["Staging\nstg_*\n(vues)"]
+    subgraph BRONZE[bronze_linki]
+        STG[Staging stg_*]
     end
 
-    subgraph SILVER["🥈 silver_linki"]
-        INT["Intermediate\nint_*\n(tables)"]
+    subgraph SILVER[silver_linki]
+        INT[Intermediate int_*]
     end
 
-    subgraph GOLD["🥇 gold_linki"]
-        MRT["Marts\nfct_* / dim_*\n(incrémental)"]
+    subgraph GOLD[gold_linki]
+        MRT[Marts fct_* / dim_*]
     end
 
     S1 --> STG
     S2 --> STG
-    STG -->|"⚙️ dbt"| INT
-    INT -->|"⚙️ dbt"| MRT
-    MRT --> PBI["📊 Power BI"]
+    STG --> INT
+    INT --> MRT
+    MRT --> PBI[Power BI]
 ```
 
 | Couche | Schéma | Matérialisation | Rôle |
