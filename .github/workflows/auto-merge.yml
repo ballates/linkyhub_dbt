@@ -1,19 +1,25 @@
 name: Auto-merge PR
 
 on:
-  pull_request:
-    types: [opened, reopened]
+  workflow_run:
+    workflows: ["dbt CI"]
+    types: [completed]
     branches: [main]
 
 jobs:
-  enable-auto-merge:
+  auto-merge:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: Activer l'auto-merge
-        run: gh pr merge --auto --squash "${{ github.event.pull_request.number }}"
+      - name: Merger la PR associée
+        run: |
+          PR_NUMBER=$(gh pr list --base main --head "${{ github.event.workflow_run.head_branch }}" --json number --jq '.[0].number')
+          if [ -n "$PR_NUMBER" ]; then
+            gh pr merge "$PR_NUMBER" --squash --delete-branch
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
