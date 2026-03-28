@@ -13,33 +13,7 @@ jobs:
       pull-requests: write
 
     steps:
-      - name: Activer l'auto-merge ou merger directement
+      - name: Activer l'auto-merge
+        run: gh pr merge --auto --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          for i in $(seq 1 12); do
-            STATUS=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-runs \
-              --jq '.check_runs[] | select(.name == "dbt-ci") | .status' 2>/dev/null)
-            if [ -n "$STATUS" ]; then
-              echo "dbt-ci détecté avec statut : $STATUS"
-              break
-            fi
-            echo "Attente... ($i/12)"
-            sleep 10
-          done
-
-          if [ "$STATUS" = "completed" ]; then
-            CONCLUSION=$(gh api repos/${{ github.repository }}/commits/${{ github.event.pull_request.head.sha }}/check-runs \
-              --jq '.check_runs[] | select(.name == "dbt-ci") | .conclusion' 2>/dev/null)
-            echo "Conclusion dbt-ci : $CONCLUSION"
-            if [ "$CONCLUSION" = "success" ]; then
-              echo "CI réussi → merge direct"
-              gh pr merge --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
-            else
-              echo "CI échoué → pas de merge"
-              exit 1
-            fi
-          else
-            echo "CI en cours → activation auto-merge"
-            gh pr merge --auto --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
-          fi
