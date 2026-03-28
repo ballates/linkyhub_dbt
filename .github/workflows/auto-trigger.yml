@@ -3,6 +3,7 @@ name: dbt Auto-trigger BigQuery
 on:
   schedule:
     - cron: '0 6 * * 1,4,6'  # lundi, jeudi et samedi à 8h (heure France été, UTC+2)
+  workflow_dispatch:  # déclenchement manuel pour tests
 
 jobs:
   check-and-build:
