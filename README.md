@@ -37,10 +37,10 @@ flowchart LR
 
     subgraph bq ["🗄️ BigQuery"]
         direction LR
-        src[("Sources brutes\nlinki_bucket_set\ngoogle_drive")]
-        bronze[("🥉 bronze_linki\nvues")]
-        silver[("🥈 silver_linki\ntables")]
-        gold[("🥇 gold_linki\nfacts & dims")]
+        src[("BigQuery · Sources brutes\nlinki_bucket_set\ngoogle_drive")]
+        bronze[("BigQuery · 🥉 bronze_linki\nvues")]
+        silver[("BigQuery · 🥈 silver_linki\ntables")]
+        gold[("BigQuery · 🥇 gold_linki\nfacts & dims")]
     end
 
     subgraph dbt ["⚙️ dbt"]
@@ -241,55 +241,40 @@ Trois workflows GitHub Actions :
 
 ```mermaid
 flowchart LR
-    dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben] -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
-    c3 -->|"❌ échec"| block[PR bloquée]
-    c3 -->|"✅ auto-merge"| d1[build prod] -->|"déploie"| d2[docs generate] -->|"publie"| d3[GitHub Pages]
+    dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben]
 
-    fivetran[Fivetran] -->|"sync LinkedIn"| bq[(BigQuery)] -->|"polling"| t2{BQ modifié ?}
-    t2 -->|"❌ rien à faire"| t3[Stop]
-    t2 -->|"✅ schedule 8h"| d1
+    subgraph ci ["ci.yml — PR vers main"]
+        branch -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+        c3 -->|"❌ échec"| block[PR bloquée]
+    end
+
+    subgraph deploy ["deploy.yml — merge dans main"]
+        d1[build prod] -->|"déploie"| d2[docs generate] -->|"publie"| d3[GitHub Pages]
+    end
+
+    subgraph trigger ["auto-trigger.yml — schedule Lun/Jeu/Sam 8h"]
+        fivetran[Fivetran] -->|"sync LinkedIn"| bq[(BigQuery)] -->|"polling"| t2{BQ modifié ?}
+        t2 -->|"❌ rien à faire"| t3[Stop]
+    end
+
+    c3 -->|"✅ auto-merge"| d1
+    t2 -->|"✅ données nouvelles"| d1
 ```
 
 ### Workflow CI — Pull Request
 
 ```mermaid
-sequenceDiagram
-    participant Dev as 👨‍💻 Développeur
-    participant GH as GitHub
-    participant CI as ci.yml
-    participant BQ as BigQuery dev_*
-
-    Dev->>GH: git push + Pull Request
-    GH->>CI: Déclenche ci.yml
-    CI->>BQ: dbt compile
-    CI->>BQ: dbt build --target dev
-    BQ-->>CI: 146 tests
-    alt Tests PASS
-        CI-->>GH: ✅ Succès
-        GH-->>Dev: PR approuvée → merge possible
-    else Tests FAIL
-        CI-->>GH: ❌ Échec
-        GH-->>Dev: Email notification + PR bloquée
-    end
+flowchart LR
+    dev[👨‍💻 Dev] -->|"git push + PR"| gh[GitHub] -->|"déclenche ci.yml"| c1[dbt compile] -->|"vérifie SQL"| c2[dbt build dev] -->|"146 tests"| c3{Tests ?}
+    c3 -->|"❌ échec"| fail[PR bloquée\nEmail notification]
+    c3 -->|"✅ succès"| ok[PR approuvée\nauto-merge]
 ```
 
 ### Workflow Deploy — Merge dans main
 
 ```mermaid
-sequenceDiagram
-    participant Dev as 👨‍💻 Développeur
-    participant GH as GitHub
-    participant D as deploy.yml
-    participant BQ as BigQuery prod
-    participant GP as GitHub Pages
-
-    Dev->>GH: Merge PR dans main
-    GH->>D: Déclenche deploy.yml
-    D->>BQ: dbt build --target prod
-    BQ-->>D: ✅ Tables prod mises à jour
-    D->>D: dbt docs generate
-    D->>GP: Déploiement documentation
-    GP-->>Dev: Docs disponibles en ligne
+flowchart LR
+    dev[👨‍💻 Dev] -->|"merge PR dans main"| gh[GitHub] -->|"déclenche deploy.yml"| d1[dbt build prod] -->|"tables mises à jour"| d2[dbt docs generate] -->|"déploiement"| d3[GitHub Pages] -->|"docs disponibles"| dev
 ```
 
 ### Workflow Auto-trigger — Schedule BigQuery
