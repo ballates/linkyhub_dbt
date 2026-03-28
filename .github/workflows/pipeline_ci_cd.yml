@@ -2,8 +2,7 @@ name: dbt Pipeline
 
 on:
   pull_request:
-    branches: [main]
-  push:
+    types: [opened, reopened, synchronize]
     branches: [main]
 
 env:
@@ -13,10 +12,8 @@ jobs:
 
   dbt-ci:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
 
     steps:
       - name: Checkout code
@@ -49,30 +46,32 @@ jobs:
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
-  enable-auto-merge:
+  merge:
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+    needs: dbt-ci
     permissions:
       contents: write
       pull-requests: write
 
     steps:
-      - name: Activer l'auto-merge
-        run: gh pr merge --auto --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
+      - name: Merger la PR
+        run: gh pr merge --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
         env:
           GH_TOKEN: ${{ secrets.GH_PAT }}
 
   dbt-deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    needs: merge
     permissions:
       contents: read
       pages: write
       id-token: write
 
     steps:
-      - name: Checkout code
+      - name: Checkout main
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Install uv
         uses: astral-sh/setup-uv@v5
@@ -138,7 +137,9 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     needs: dbt-deploy
-    if: github.event_name == 'push'
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
