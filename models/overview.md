@@ -128,11 +128,9 @@ Le rapport Power BI consomme les tables de la couche Gold (`gold_linki`) pour vi
 
 ## CI/CD
 
-| Workflow | Déclencheur | Actions |
+| Workflow | Déclencheur | Jobs |
 |---|---|---|
-| `ci.yml` | Pull Request vers `main` | compile + build + tests (target dev) |
-| `auto-merge.yml` | PR ouverte / réouverte vers `main` | active le flag `--auto` — GitHub merge automatiquement une fois `dbt-ci` passé |
-| `deploy.yml` | Merge dans `main` | build prod + docs GitHub Pages |
+| `pipeline_ci_cd.yml` | Pull Request vers `main` | `dbt-ci` → `merge` → `dbt-deploy` → `deploy-docs` |
 | `auto-trigger.yml` | Lun, Jeu, Sam à 8h | polling BigQuery → build prod si données changées |
 
 Les dépendances sont gérées via **uv** pour des installations rapides sur les runners GitHub.
