@@ -33,7 +33,27 @@ Les schemas sont séparés par environnement :
 
 ```mermaid
 flowchart LR
-    sources["📥 Fivetran"] -->|raw data| bronze["🥉 Bronze\nbronze_linki"] -->|dbt views| silver["🥈 Silver\nsilver_linki"] -->|dbt tables| gold["🥇 Gold\ngold_linki"] -->|BigQuery| powerbi["📊 Power BI"]
+    fivetran["📥 Fivetran"] -->|"sync raw data"| src
+
+    subgraph bq ["🗄️ BigQuery"]
+        direction LR
+        src[("Sources brutes\nlinki_bucket_set\ngoogle_drive")]
+        bronze[("🥉 bronze_linki\nvues")]
+        silver[("🥈 silver_linki\ntables")]
+        gold[("🥇 gold_linki\nfacts & dims")]
+    end
+
+    subgraph dbt ["⚙️ dbt"]
+        direction LR
+        stg["Staging\nstg_*"] -->|"normalise"| int["Intermediate\nint_*"] -->|"agrège"| mart["Marts\nfct_* · dim_*"]
+    end
+
+    src -->|"lecture"| stg
+    stg -->|"matérialise vues"| bronze
+    int -->|"matérialise tables"| silver
+    mart -->|"matérialise incrémental"| gold
+
+    gold -->|"consommation"| powerbi["📊 Power BI"]
 ```
 
 ### Clés surrogates
@@ -221,13 +241,13 @@ Trois workflows GitHub Actions :
 
 ```mermaid
 flowchart LR
-    dev[👨‍💻 Dev] -->|git push| branch[feature/ben] -->|PR| c1[compile] --> c2[build dev] --> c3{Tests ?}
-    c3 -->|❌| block[PR bloquée]
-    c3 -->|✅ merge main| d1[build prod] --> d2[docs] --> d3[GitHub Pages]
+    dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben] -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+    c3 -->|"❌ échec"| block[PR bloquée]
+    c3 -->|"✅ auto-merge"| d1[build prod] -->|"déploie"| d2[docs generate] -->|"publie"| d3[GitHub Pages]
 
-    fivetran[Fivetran] -->|Sync| bq[(BigQuery)] --> t2{BQ modifié ?}
-    t2 -->|❌| t3[Stop]
-    t2 -->|✅ schedule| d1
+    fivetran[Fivetran] -->|"sync LinkedIn"| bq[(BigQuery)] -->|"polling"| t2{BQ modifié ?}
+    t2 -->|"❌ rien à faire"| t3[Stop]
+    t2 -->|"✅ schedule 8h"| d1
 ```
 
 ### Workflow CI — Pull Request
