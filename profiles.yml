@@ -8,7 +8,7 @@ linkyhub_dbt:
       dataset: DEV
       location: US
       threads: 4
-      keyfile: "{{ env_var('DBT_KEYFILE') }}"
+      keyfile: "{{ env_var('DBT_KEYFILE', '/home/ben/k/2026/dbt_project/linkyhub_dbt/.env/prime-force-478609-s4-4978c2c4dea5.json') }}"
     prod:
       type: bigquery
       method: service-account

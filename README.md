@@ -46,75 +46,26 @@ Les schemas sont séparés par environnement :
 ```mermaid
 flowchart TD
     subgraph sources ["📥 Sources — Fivetran"]
-        s1[(linki_bucket_set\ninvitations · connections\ncertifications · learning)]
-        s2[(google_drive\nposts · interactions\nabonnés · données_geo)]
+        s1[(linki_bucket_set)]
+        s2[(google_drive)]
     end
 
-    subgraph bronze ["🥉 Bronze — bronze_linki\nVues staging"]
-        stg1[stg_invitations]
-        stg2[stg_connections]
-        stg3[stg_certifications]
-        stg4[stg_learning]
-        stg5[stg_posts]
-        stg6[stg_interactions]
-        stg7[stg_abonnes]
-        stg8[stg_donnees_geo]
+    subgraph bronze ["🥉 Bronze — bronze_linki"]
+        stg[8 vues staging\nstg_*]
     end
 
-    subgraph silver ["🥈 Silver — silver_linki\nTables intermédiaires"]
-        int1[int_invitations]
-        int2[int_connections]
-        int3[int_certifications]
-        int4[int_learning]
-        int5[int_posts]
-        int6[int_interactions]
-        int7[int_abonnes]
-        int8[int_donnees_geo]
+    subgraph silver ["🥈 Silver — silver_linki"]
+        int[8 tables intermédiaires\nint_*]
     end
 
-    subgraph gold ["🥇 Gold — gold_linki\nTables analytiques"]
-        subgraph facts ["Fact tables — Incrémental merge"]
-            fct1[fct_posts]
-            fct2[fct_abonnes]
-        end
-        subgraph dims ["Dimensions"]
-            dim1[dim_posts]
-            dim2[dim_connections]
-            dim3[dim_invitations]
-            dim4[dim_certifications]
-            dim5[dim_learning]
-            dim6[dim_area]
-            dim7[dim_sectors]
-            dim8[dim_hierarchy_level]
-            dim9[dim_calendar]
-        end
+    subgraph gold ["🥇 Gold — gold_linki"]
+        fct[2 facts incrémentales\nfct_posts · fct_abonnes]
+        dim[9 dimensions\ndim_*]
     end
 
-    powerbi[📊 Power BI\nKPIs impressions & abonnements]
+    powerbi[📊 Power BI\nKPIs LinkedIn]
 
-    s1 --> stg1 & stg2 & stg3 & stg4
-    s2 --> stg5 & stg6 & stg7 & stg8
-
-    stg1 --> int1
-    stg2 --> int2
-    stg3 --> int3
-    stg4 --> int4
-    stg5 --> int5
-    stg6 --> int6
-    stg7 --> int7
-    stg8 --> int8
-
-    int5 & int6 --> fct1
-    int7 --> fct2
-    int5 --> dim1
-    int2 --> dim2
-    int1 --> dim3
-    int3 --> dim4
-    int4 --> dim5
-    int8 --> dim6 & dim7 & dim8
-
-    fct1 & fct2 --> powerbi
-    dim9 --> fct1 & fct2
+    sources --> bronze --> silver --> gold --> powerbi
 ```
 
 ### Clés surrogates
@@ -230,20 +181,15 @@ dbt deps
 
 ### Configuration
 
-Le fichier `~/.dbt/profiles.yml` doit contenir :
+Le projet utilise le `profiles.yml` à la racine (`--profiles-dir .`). Le keyfile est résolu automatiquement :
+
+- En **local** : chemin par défaut vers `.env/prime-force-478609-s4-*.json` (pas de variable à définir)
+- En **CI/CD** : la variable `DBT_KEYFILE` est injectée par GitHub Actions via le secret `GCP_SERVICE_ACCOUNT_KEY`
+
+Place ton fichier service account JSON dans `.env/` à la racine du projet. Le `profiles.yml` le récupère via :
 
 ```yaml
-linkyhub_dbt:
-  target: dev
-  outputs:
-    dev:
-      type: bigquery
-      method: service-account
-      project: prime-force-478609-s4
-      dataset: DEV
-      location: US
-      threads: 4
-      keyfile: /chemin/vers/service-account.json
+keyfile: "{{ env_var('DBT_KEYFILE', '/chemin/vers/.env/service-account.json') }}"
 ```
 
 ---
@@ -383,7 +329,7 @@ flowchart LR
     cron["⏰ Lun / Jeu / Sam\n8h00"] --> check
 
     subgraph check ["Vérification BigQuery"]
-        q[INFORMATION_SCHEMA.TABLES\nlast_modified_time ≥ 8h] --> result{Changement ?}
+        q[__TABLES__\nlast_modified_time ≥ 30 min] --> result{Changement ?}
     end
 
     fivetran[Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
