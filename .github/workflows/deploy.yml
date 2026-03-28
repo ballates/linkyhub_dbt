@@ -24,7 +24,10 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install dbt-bigquery
-        run: uv tool install "dbt-bigquery>=1.11.0"
+        run: |
+          uv venv .venv
+          uv pip install --python .venv/bin/python "dbt-bigquery>=1.11.0"
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Write GCP credentials
         run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
