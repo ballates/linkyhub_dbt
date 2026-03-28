@@ -22,7 +22,7 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install dbt-bigquery
-        run: uv pip install --system "dbt-bigquery>=1.11.0"
+        run: uv tool install "dbt-bigquery>=1.11.0"
 
       - name: Write GCP credentials
         run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
