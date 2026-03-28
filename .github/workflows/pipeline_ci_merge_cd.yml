@@ -1,24 +1,74 @@
-name: dbt Deploy
+name: dbt Pipeline
 
 on:
-  push:
-    branches: [main]
   pull_request:
-    types: [closed]
+    branches: [main]
+  push:
     branches: [main]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
 jobs:
+
+  dbt-ci:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dbt-bigquery
+        run: |
+          uv venv .venv
+          uv pip install --python .venv/bin/python "dbt-bigquery>=1.11.0"
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
+
+      - name: Write GCP credentials
+        run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
+
+      - name: dbt deps
+        run: dbt deps --profiles-dir .
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
+
+      - name: dbt compile
+        run: dbt compile --profiles-dir . --target dev
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
+
+      - name: dbt build + test (dev)
+        run: dbt build --profiles-dir . --target dev
+        env:
+          DBT_KEYFILE: /tmp/gcp_key.json
+
+  enable-auto-merge:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && (github.event.action == 'opened' || github.event.action == 'reopened' || github.event.action == 'synchronize')
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Activer l'auto-merge
+        run: gh pr merge --auto --squash --repo "${{ github.repository }}" "${{ github.event.pull_request.number }}"
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT }}
+
   dbt-deploy:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event.pull_request.merged == true
+    if: github.event_name == 'push'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
 
     steps:
       - name: Checkout code
@@ -88,6 +138,7 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     needs: dbt-deploy
+    if: github.event_name == 'push'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
