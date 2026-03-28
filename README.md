@@ -141,7 +141,7 @@ Contrôle le nom du schema selon l'environnement.
 
 ### Prérequis
 
-- Python 3.12+
+- [uv](https://github.com/astral-sh/uv) (gestionnaire de paquets Python)
 - Accès BigQuery (projet `prime-force-478609-s4`)
 - Service account JSON GCP
 
@@ -231,7 +231,8 @@ Trois workflows GitHub Actions :
 | Workflow | Déclencheur | Actions |
 |---|---|---|
 | `ci.yml` | Pull Request vers `main` | compile + build + 146 tests (target dev) |
-| `deploy.yml` | Push/merge dans `main` | build prod + génération docs GitHub Pages |
+| `auto-merge.yml` | PR ouverte vers `main` | active l'auto-merge (attend que le CI passe) |
+| `deploy.yml` | Merge dans `main` ou PR mergée | build prod + génération docs GitHub Pages |
 | `auto-trigger.yml` | Lun, Jeu, Sam à 8h | polling BigQuery → build prod si données changées |
 
 ### Vue d'ensemble
@@ -241,7 +242,7 @@ flowchart LR
     dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben]
 
     subgraph ci ["ci.yml — PR vers main"]
-        branch -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+        branch -->|"ouvre PR"| am[auto-merge activé] --> c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
         c3 -->|"❌ échec"| block[PR bloquée]
     end
 
@@ -254,7 +255,7 @@ flowchart LR
         t2 -->|"❌ rien à faire"| t3[Stop]
     end
 
-    c3 -->|"✅ auto-merge"| d1
+    c3 -->|"✅ GitHub merge"| d1
     t2 -->|"✅ données nouvelles"| d1
 ```
 
@@ -264,7 +265,7 @@ flowchart LR
 flowchart LR
     dev[👨‍💻 Dev] -->|"git push + PR"| gh[GitHub] -->|"déclenche ci.yml"| c1[dbt compile] -->|"vérifie SQL"| c2[dbt build dev] -->|"146 tests"| c3{Tests ?}
     c3 -->|"❌ échec"| fail[PR bloquée\nEmail notification]
-    c3 -->|"✅ succès"| ok[PR approuvée\nauto-merge]
+    c3 -->|"✅ succès"| ok[CI passed\nGitHub auto-merge]
 ```
 
 ### Workflow Deploy — Merge dans main
