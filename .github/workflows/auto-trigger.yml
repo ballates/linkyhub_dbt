@@ -59,13 +59,13 @@ jobs:
           EOF
 
       - name: dbt deps
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt deps --profiles-dir .
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
       - name: dbt build (prod)
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt build --profiles-dir . --target prod
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
