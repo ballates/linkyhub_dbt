@@ -25,29 +25,32 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 ## Flux complet des données
 
 ```mermaid
-flowchart LR
-    subgraph SRC[Sources BigQuery]
-        S1[linki_bucket_set]
-        S2[google_drive]
-    end
+flowchart TD
+    classDef src fill:#1565C0,color:#fff,stroke:#0D47A1
+    classDef bronze fill:#6D4C41,color:#fff,stroke:#4E342E
+    classDef silver fill:#455A64,color:#fff,stroke:#37474F
+    classDef gold fill:#E65100,color:#fff,stroke:#BF360C
+    classDef pbi fill:#4A148C,color:#fff,stroke:#38006B
+
+    S1([linki_bucket_set]):::src
+    S2([google_drive]):::src
 
     subgraph BRONZE[bronze_linki]
-        STG[Staging stg_*]
+        STG[Staging · stg_*]:::bronze
     end
 
     subgraph SILVER[silver_linki]
-        INT[Intermediate int_*]
+        INT[Intermediate · int_*]:::silver
     end
 
     subgraph GOLD[gold_linki]
-        MRT[Marts fct_* / dim_*]
+        MRT[Marts · fct_* / dim_*]:::gold
     end
 
-    S1 --> STG
-    S2 --> STG
+    S1 & S2 --> STG
     STG --> INT
     INT --> MRT
-    MRT --> PBI[Power BI]
+    MRT --> PBI([Power BI]):::pbi
 ```
 
 | Couche | Schéma | Matérialisation | Rôle |
