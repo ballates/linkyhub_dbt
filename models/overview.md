@@ -2,21 +2,21 @@
 
 # Bienvenue sur la documentation LinkyHub — Ben Mbairo
 
-Ce projet dbt transforme les données **LinkedIn** de Ben Mbairo en un pipeline analytique structuré et documenté, hébergé sur **BigQuery**.
+Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique structuré et documenté, hébergé sur **BigQuery**.
 
 ---
 
 ## Architecture du pipeline
 
 ```
-Sources (Fivetran)
-      ↓
-Bronze — bronze_linki   →  Vues staging (données brutes nettoyées)
-      ↓
-Silver — silver_linki   →  Tables intermédiaires (normalisées, dédupliquées)
-      ↓
-Gold   — gold_linki     →  Tables analytiques finales (dims & facts)
-      ↓
+Sources :
+      
+Bronze : bronze_linki   →  Vues staging (données brutes nettoyées)
+      
+Silver : silver_linki   →  Tables intermédiaires (normalisées, dédupliquées)
+      
+Gold   : gold_linki     →  Tables analytiques finales (dims & facts)
+      
 Power BI                →  Rapport de visualisation des KPIs LinkedIn
 ```
 
@@ -30,7 +30,7 @@ L'objectif final de ce pipeline est d'alimenter un **rapport Power BI** permetta
 
 ## Sources de données
 
-Les données proviennent de **Fivetran** via deux connecteurs :
+Les données proviennent de :
 
 | Source | Tables |
 |---|---|
@@ -55,9 +55,9 @@ Les données proviennent de **Fivetran** via deux connecteurs :
 
 ## Qualité des données
 
-Le projet contient **146 tests automatisés** :
+Le projet contient **plusieurs tests automatisés** :
 - Unicité et non-nullité des clés
-- Valeurs acceptées (ex: direction OUTGOING / INCOMING)
+- Valeurs acceptées 
 - Plages de valeurs numériques
 - Intégrité référentielle entre facts et dimensions
 - Validation de formats (emails, URLs LinkedIn)
@@ -66,8 +66,8 @@ Le projet contient **146 tests automatisés** :
 
 ## Navigation
 
-- **Project** — explore les modèles par couche (staging → intermediate → marts)
-- **Database** — explore les tables par schéma BigQuery
-- **Lineage graph** — visualise les dépendances entre modèles (icône bleue en bas à droite)
+- **Project** : explore les modèles par couche (staging → intermediate → marts)
+- **Database** : explore les tables par schéma BigQuery
+- **Lineage graph** : visualise les dépendances entre modèles (icône bleue en bas à droite)
 
 {% enddocs %}
