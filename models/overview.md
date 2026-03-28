@@ -6,22 +6,46 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ---
 
+## Table des matières
+
+- [Flux complet des données](#flux-complet-des-données)
+- [Objectif](#objectif)
+- [Sources de données](#sources-de-données)
+- [Modèles](#modèles)
+- [Clés surrogates](#clés-surrogates)
+- [Qualité des données](#qualité-des-données)
+- [Power BI](#power-bi)
+- [CI/CD](#cicd)
+- [Navigation](#navigation)
+
+---
+
 ## Flux complet des données
 
-```
-                                          ⚙️ dbt
-                                 ┌─────────────────────────┐
-🙋 Dépôt manuel                  │  Staging   → Intermediate → Marts     │
-   linki_bucket_set  ──lecture──▶│  stg_*        int_*         fct_* dim_*│
-                                 │  (vues)       (tables)      (incrémental)│
-📥 Fivetran                       └──────┬──────────┬───────────┬──────────┘
-   google_drive      ──lecture──▶        │          │           │
-                                         ▼          ▼           ▼
-                              🗄️ BigQuery bronze  silver      gold
-                                 bronze_linki  silver_linki  gold_linki
-                                                                  │
-                                                                  ▼
-                                                           📊 Power BI
+```mermaid
+flowchart LR
+    subgraph SRC["Sources BigQuery"]
+        S1["🙋 linki_bucket_set\nDépôt manuel"]
+        S2["📥 google_drive\nFivetran"]
+    end
+
+    subgraph BRONZE["🥉 bronze_linki"]
+        STG["Staging\nstg_*\n(vues)"]
+    end
+
+    subgraph SILVER["🥈 silver_linki"]
+        INT["Intermediate\nint_*\n(tables)"]
+    end
+
+    subgraph GOLD["🥇 gold_linki"]
+        MRT["Marts\nfct_* / dim_*\n(incrémental)"]
+    end
+
+    S1 --> STG
+    S2 --> STG
+    STG -->|"⚙️ dbt"| INT
+    INT -->|"⚙️ dbt"| MRT
+    MRT --> PBI["📊 Power BI"]
 ```
 
 | Couche | Schéma | Matérialisation | Rôle |
