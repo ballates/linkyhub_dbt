@@ -5,6 +5,9 @@ on:
     - cron: '0 6 * * 1,4,6'  # lundi, jeudi et samedi à 8h - UTC+2
   workflow_dispatch:  # déclenchement manuel pour tests
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
