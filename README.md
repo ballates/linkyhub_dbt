@@ -226,53 +226,32 @@ dbt docs generate --profiles-dir . --target prod --select "path:models"
 
 ## CI/CD
 
-Trois workflows GitHub Actions :
+Deux workflows GitHub Actions :
 
-| Workflow | Déclencheur | Actions |
+| Workflow | Déclencheur | Jobs |
 |---|---|---|
-| `ci.yml` | Pull Request vers `main` | compile + build + 146 tests (target dev) |
-| `auto-merge.yml` | PR ouverte vers `main` | active l'auto-merge (attend que le CI passe) |
-| `deploy.yml` | Merge dans `main` ou PR mergée | build prod + génération docs GitHub Pages |
+| `pipeline_ci_cd.yml` | Pull Request vers `main` | `dbt-ci` → `merge` → `dbt-deploy` → `deploy-docs` |
 | `auto-trigger.yml` | Lun, Jeu, Sam à 8h | polling BigQuery → build prod si données changées |
 
 ### Vue d'ensemble
 
 ```mermaid
 flowchart LR
-    dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben]
+    dev[Dev] -->|"git push + PR"| branch[feature/ben]
 
-    subgraph ci ["ci.yml — PR vers main"]
-        branch -->|"ouvre PR"| am[auto-merge activé] --> c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
-        c3 -->|"❌ échec"| block[PR bloquée]
+    subgraph pipeline ["pipeline_ci_cd.yml — PR vers main"]
+        direction LR
+        c1[dbt-ci\ncompile + build + tests] -->|"CI passe"| c2[merge\nPR squash] -->|"merge OK"| c3[dbt-deploy\nbuild prod + docs] --> c4[deploy-docs\nGitHub Pages]
+        c1 -->|"echec"| block[PR bloquee]
     end
 
-    subgraph deploy ["deploy.yml — merge dans main"]
-        d1[build prod] -->|"déploie"| d2[docs generate] -->|"publie"| d3[GitHub Pages]
+    subgraph trigger ["auto-trigger.yml — Lun/Jeu/Sam 8h"]
+        bq[(BigQuery)] -->|"polling"| t2{BQ modifie ?}
+        t2 -->|"OUI"| build[dbt build prod]
+        t2 -->|"NON"| stop[Stop]
     end
 
-    subgraph trigger ["auto-trigger.yml — schedule Lun/Jeu/Sam 8h"]
-        fivetran[Fivetran] -->|"sync LinkedIn"| bq[(BigQuery)] -->|"polling"| t2{BQ modifié ?}
-        t2 -->|"❌ rien à faire"| t3[Stop]
-    end
-
-    c3 -->|"✅ GitHub merge"| d1
-    t2 -->|"✅ données nouvelles"| d1
-```
-
-### Workflow CI — Pull Request
-
-```mermaid
-flowchart LR
-    dev[👨‍💻 Dev] -->|"git push + PR"| gh[GitHub] -->|"déclenche ci.yml"| c1[dbt compile] -->|"vérifie SQL"| c2[dbt build dev] -->|"146 tests"| c3{Tests ?}
-    c3 -->|"❌ échec"| fail[PR bloquée\nEmail notification]
-    c3 -->|"✅ succès"| ok[CI passed\nGitHub auto-merge]
-```
-
-### Workflow Deploy — Merge dans main
-
-```mermaid
-flowchart LR
-    dev[👨‍💻 Dev] -->|"merge PR dans main"| gh[GitHub] -->|"déclenche deploy.yml"| d1[dbt build prod] -->|"tables mises à jour"| d2[dbt docs generate] -->|"déploiement"| d3[GitHub Pages] -->|"docs disponibles"| dev
+    branch --> c1
 ```
 
 ### Workflow Auto-trigger — Schedule BigQuery
@@ -298,6 +277,7 @@ flowchart LR
 | Secret | Description |
 |---|---|
 | `GCP_SERVICE_ACCOUNT_KEY` | Contenu JSON du service account GCP |
+| `GH_PAT` | Personal Access Token GitHub (scope `repo`) — utilisé pour le merge automatique des PRs |
 
 ### Documentation
 

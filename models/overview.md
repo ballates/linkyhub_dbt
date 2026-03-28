@@ -6,22 +6,51 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ---
 
+## Table des matières
+
+| # | Section |
+|---|---|
+| 1 | Flux complet des données |
+| 2 | Objectif |
+| 3 | Sources de données |
+| 4 | Modèles |
+| 5 | Clés surrogates |
+| 6 | Qualité des données |
+| 7 | Power BI |
+| 8 | CI/CD |
+| 9 | Navigation |
+
+---
+
 ## Flux complet des données
 
-```
-                                          ⚙️ dbt
-                                 ┌─────────────────────────┐
-🙋 Dépôt manuel                  │  Staging   → Intermediate → Marts     │
-   linki_bucket_set  ──lecture──▶│  stg_*        int_*         fct_* dim_*│
-                                 │  (vues)       (tables)      (incrémental)│
-📥 Fivetran                       └──────┬──────────┬───────────┬──────────┘
-   google_drive      ──lecture──▶        │          │           │
-                                         ▼          ▼           ▼
-                              🗄️ BigQuery bronze  silver      gold
-                                 bronze_linki  silver_linki  gold_linki
-                                                                  │
-                                                                  ▼
-                                                           📊 Power BI
+```mermaid
+flowchart TD
+    classDef src fill:#1565C0,color:#fff,stroke:#0D47A1
+    classDef bronze fill:#6D4C41,color:#fff,stroke:#4E342E
+    classDef silver fill:#455A64,color:#fff,stroke:#37474F
+    classDef gold fill:#E65100,color:#fff,stroke:#BF360C
+    classDef pbi fill:#4A148C,color:#fff,stroke:#38006B
+
+    S1([linki_bucket_set]):::src
+    S2([google_drive]):::src
+
+    subgraph BRONZE[bronze_linki]
+        STG[Staging · stg_*]:::bronze
+    end
+
+    subgraph SILVER[silver_linki]
+        INT[Intermediate · int_*]:::silver
+    end
+
+    subgraph GOLD[gold_linki]
+        MRT[Marts · fct_* / dim_*]:::gold
+    end
+
+    S1 & S2 --> STG
+    STG --> INT
+    INT --> MRT
+    MRT --> PBI([Power BI]):::pbi
 ```
 
 | Couche | Schéma | Matérialisation | Rôle |
@@ -99,11 +128,9 @@ Le rapport Power BI consomme les tables de la couche Gold (`gold_linki`) pour vi
 
 ## CI/CD
 
-| Workflow | Déclencheur | Actions |
+| Workflow | Déclencheur | Jobs |
 |---|---|---|
-| `ci.yml` | Pull Request vers `main` | compile + build + tests (target dev) |
-| `auto-merge.yml` | PR ouverte vers `main` | active l'auto-merge — attend que le CI passe |
-| `deploy.yml` | PR mergée dans `main` | build prod + docs GitHub Pages |
+| `pipeline_ci_cd.yml` | Pull Request vers `main` | `dbt-ci` → `merge` → `dbt-deploy` → `deploy-docs` |
 | `auto-trigger.yml` | Lun, Jeu, Sam à 8h | polling BigQuery → build prod si données changées |
 
 Les dépendances sont gérées via **uv** pour des installations rapides sur les runners GitHub.
