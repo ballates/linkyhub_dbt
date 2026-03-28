@@ -6,36 +6,44 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ---
 
-## Architecture du pipeline
+## Flux complet des données
 
 ```
-Sources :
-      
-Bronze : bronze_linki   →  Vues staging (données brutes nettoyées)
-      
-Silver : silver_linki   →  Tables intermédiaires (normalisées, dédupliquées)
-      
-Gold   : gold_linki     →  Tables analytiques finales (dims & facts)
-      
-Power BI                →  Rapport de visualisation des KPIs LinkedIn
+                                          ⚙️ dbt
+                                 ┌─────────────────────────┐
+🙋 Dépôt manuel                  │  Staging   → Intermediate → Marts     │
+   linki_bucket_set  ──lecture──▶│  stg_*        int_*         fct_* dim_*│
+                                 │  (vues)       (tables)      (incrémental)│
+📥 Fivetran                       └──────┬──────────┬───────────┬──────────┘
+   google_drive      ──lecture──▶        │          │           │
+                                         ▼          ▼           ▼
+                              🗄️ BigQuery bronze  silver      gold
+                                 bronze_linki  silver_linki  gold_linki
+                                                                  │
+                                                                  ▼
+                                                           📊 Power BI
 ```
+
+| Couche | Schéma | Matérialisation | Rôle |
+|---|---|---|---|
+| Bronze | `bronze_linki` | Vues | Données brutes nettoyées |
+| Silver | `silver_linki` | Tables | Normalisées, dédupliquées |
+| Gold | `gold_linki` | Tables / Incrémental | Dims & facts prêts pour Power BI |
 
 ---
 
 ## Objectif
 
-L'objectif final de ce pipeline est d'alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** du profil LinkedIn de Ben Mbairo, afin de suivre et d'analyser la performance de sa présence sur la plateforme.
+Alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** du profil LinkedIn de Ben Mbairo, afin de suivre et d'analyser la performance de sa présence sur la plateforme.
 
 ---
 
 ## Sources de données
 
-Les données proviennent de :
-
-| Source | Tables |
-|---|---|
-| LinkedIn (`linki_bucket_set`) | invitations, connections, certifications, formations |
-| Google Drive (`google_drive`) | posts, impressions, interactions, abonnés, données démographiques |
+| Source BigQuery | Alimentation | Tables |
+|---|---|---|
+| `linki_bucket_set` | Dépôt manuel | invitations, connections, certifications, learning |
+| `google_drive` | Fivetran (sync automatique) | posts, interactions, abonnés, données démographiques |
 
 ---
 
@@ -53,14 +61,39 @@ Les données proviennent de :
 
 ---
 
+## Clés surrogates
+
+Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des clés uniques :
+
+```sql
+FARM_FINGERPRINT(CONCAT(champ1, '|', champ2)) AS id_model
+```
+
+---
+
 ## Qualité des données
 
-Le projet contient **plusieurs tests automatisés** :
-- Unicité et non-nullité des clés
-- Valeurs acceptées 
-- Plages de valeurs numériques
+**146 tests automatisés** couvrant :
+
+- Unicité et non-nullité des clés surrogates (`id_*`)
+- Valeurs acceptées (ex: direction `OUTGOING` / `INCOMING`)
+- Plages de valeurs numériques (impressions, interactions, pourcentages)
 - Intégrité référentielle entre facts et dimensions
 - Validation de formats (emails, URLs LinkedIn)
+
+---
+
+## Power BI
+
+Le rapport Power BI consomme les tables de la couche Gold (`gold_linki`) pour visualiser les KPIs LinkedIn.
+
+**KPIs suivis :**
+- Évolution des impressions par post
+- Évolution des abonnements dans le temps
+- Performance des interactions (likes, commentaires, partages)
+- Analyse démographique des abonnés (zones géographiques, secteurs, niveaux hiérarchiques)
+
+![Dashboard Power BI](https://ballates.github.io/linkyhub_dbt/assets/impressions.png)
 
 ---
 

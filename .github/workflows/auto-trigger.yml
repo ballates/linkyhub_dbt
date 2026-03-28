@@ -44,7 +44,7 @@ jobs:
               query = f"""
               SELECT COUNT(*) as cnt
               FROM `{project}.{dataset}.__TABLES__`
-              WHERE TIMESTAMP_MILLIS(last_modified_time) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 MINUTE)
+              WHERE TIMESTAMP_MILLIS(last_modified_time) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 72 HOUR)
               """
               result = client.query(query).result()
               for row in result:

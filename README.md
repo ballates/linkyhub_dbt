@@ -33,11 +33,13 @@ Les schemas sont séparés par environnement :
 
 ```mermaid
 flowchart LR
-    fivetran["📥 Fivetran"] -->|"sync raw data"| src
+    manuel["🙋 Dépôt manuel"] -->|"upload"| bucket[("linki_bucket_set")]
+    fivetran["📥 Fivetran"] -->|"sync"| gdrive[("google_drive")]
 
     subgraph bq ["🗄️ BigQuery"]
         direction LR
-        src[("Sources brutes\nlinki_bucket_set\ngoogle_drive")]
+        bucket
+        gdrive
         bronze[("🥉 bronze_linki\nvues")]
         silver[("🥈 silver_linki\ntables")]
         gold[("🥇 gold_linki\nfacts & dims")]
@@ -48,7 +50,8 @@ flowchart LR
         stg["staging\nstg_*"] -->|"normalise"| int["intermediate\nint_*"] -->|"agrège"| mart["marts\nfct_* · dim_*"]
     end
 
-    src -->|"lecture"| stg
+    bucket -->|"lecture"| stg
+    gdrive -->|"lecture"| stg
     stg -->|"matérialise vues"| bronze
     int -->|"matérialise tables"| silver
     mart -->|"matérialise incrémental"| gold
@@ -278,7 +281,7 @@ flowchart LR
     cron["⏰ Lun / Jeu / Sam\n8h00"] --> check
 
     subgraph check ["Vérification BigQuery"]
-        q[__TABLES__\nlast_modified_time ≥ 30 min] --> result{Changement ?}
+        q[__TABLES__\nlast_modified_time ≥ 72h] --> result{Changement ?}
     end
 
     fivetran[Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
