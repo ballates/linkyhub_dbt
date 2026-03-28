@@ -78,6 +78,7 @@ jobs:
           cp target/index.html /tmp/docs/
           cp target/manifest.json /tmp/docs/
           cp target/catalog.json /tmp/docs/
+          cp -r assets /tmp/docs/
 
       - name: Upload GitHub Pages artifact
         uses: actions/upload-pages-artifact@v3
