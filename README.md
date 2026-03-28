@@ -231,8 +231,8 @@ Trois workflows GitHub Actions :
 | Workflow | Déclencheur | Actions |
 |---|---|---|
 | `ci.yml` | Pull Request vers `main` | compile + build + 146 tests (target dev) |
-| `auto-merge.yml` | PR ouverte vers `main` | active l'auto-merge (attend que le CI passe) |
-| `deploy.yml` | Merge dans `main` ou PR mergée | build prod + génération docs GitHub Pages |
+| `auto-merge.yml` | PR ouverte / réouverte vers `main` | active le flag `--auto` sur la PR — GitHub merge automatiquement une fois `dbt-ci` passé (branch protection required check) |
+| `deploy.yml` | Merge dans `main` | build prod + génération docs GitHub Pages |
 | `auto-trigger.yml` | Lun, Jeu, Sam à 8h | polling BigQuery → build prod si données changées |
 
 ### Vue d'ensemble
@@ -241,8 +241,9 @@ Trois workflows GitHub Actions :
 flowchart LR
     dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben]
 
-    subgraph ci ["ci.yml — PR vers main"]
-        branch -->|"ouvre PR"| am[auto-merge activé] --> c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+    subgraph ci ["ci.yml + auto-merge.yml — PR vers main"]
+        branch -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+        branch -->|"ouvre PR"| am[🔒 auto-merge activé\nattend dbt-ci]
         c3 -->|"❌ échec"| block[PR bloquée]
     end
 
@@ -255,7 +256,7 @@ flowchart LR
         t2 -->|"❌ rien à faire"| t3[Stop]
     end
 
-    c3 -->|"✅ GitHub merge"| d1
+    c3 -->|"✅ dbt-ci passé\n→ branch protection\n→ GitHub merge"| d1
     t2 -->|"✅ données nouvelles"| d1
 ```
 
