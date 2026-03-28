@@ -20,7 +20,10 @@ jobs:
         uses: astral-sh/setup-uv@v5
 
       - name: Install dependencies
-        run: uv pip install --system google-cloud-bigquery "dbt-bigquery>=1.11.0"
+        run: |
+          uv venv .venv
+          uv pip install --python .venv/bin/python google-cloud-bigquery "dbt-bigquery>=1.11.0"
+          echo "$PWD/.venv/bin" >> $GITHUB_PATH
 
       - name: Write GCP credentials
         run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
