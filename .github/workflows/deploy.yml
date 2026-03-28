@@ -3,6 +3,9 @@ name: dbt Deploy
 on:
   push:
     branches: [main]
+  pull_request:
+    types: [closed]
+    branches: [main]
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -15,6 +18,7 @@ permissions:
 jobs:
   dbt-deploy:
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.merged == true
 
     steps:
       - name: Checkout code
