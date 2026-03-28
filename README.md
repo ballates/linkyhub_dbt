@@ -37,15 +37,15 @@ flowchart LR
 
     subgraph bq ["🗄️ BigQuery"]
         direction LR
-        src[("BigQuery · Sources brutes\nlinki_bucket_set\ngoogle_drive")]
-        bronze[("BigQuery · 🥉 bronze_linki\nvues")]
-        silver[("BigQuery · 🥈 silver_linki\ntables")]
-        gold[("BigQuery · 🥇 gold_linki\nfacts & dims")]
+        src[("Sources brutes\nlinki_bucket_set\ngoogle_drive")]
+        bronze[("🥉 bronze_linki\nvues")]
+        silver[("🥈 silver_linki\ntables")]
+        gold[("🥇 gold_linki\nfacts & dims")]
     end
 
     subgraph dbt ["⚙️ dbt"]
         direction LR
-        stg["Staging\nstg_*"] -->|"normalise"| int["Intermediate\nint_*"] -->|"agrège"| mart["Marts\nfct_* · dim_*"]
+        stg["staging\nstg_*"] -->|"normalise"| int["intermediate\nint_*"] -->|"agrège"| mart["marts\nfct_* · dim_*"]
     end
 
     src -->|"lecture"| stg
@@ -63,16 +63,6 @@ Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des c
 ```sql
 FARM_FINGERPRINT(CONCAT(champ1, '|', champ2)) AS id_model
 ```
-
-### Matérialisation
-
-```mermaid
-flowchart LR
-    v[Vue\nstaging] -->|lecture seule\npas de stockage| t
-    t[Table\nintermediate & dims] -->|recréée\nà chaque build| i
-    i[Table incrémentale\nfct_posts · fct_abonnes] -->|merge sur\nunique_key| bq[(BigQuery)]
-```
-
 ---
 
 ## Sources de données
