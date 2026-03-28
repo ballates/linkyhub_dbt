@@ -2,7 +2,7 @@ name: dbt Auto-trigger BigQuery
 
 on:
   schedule:
-    - cron: '0 6 * * 1,4,6'  # lundi, jeudi et samedi à 8h (heure France été, UTC+2)
+    - cron: '0 6 * * 1,4,6'  # lundi, jeudi et samedi à 8h - UTC+2
   workflow_dispatch:  # déclenchement manuel pour tests
 
 jobs:
@@ -44,7 +44,7 @@ jobs:
               query = f"""
               SELECT COUNT(*) as cnt
               FROM `{project}.{dataset}.__TABLES__`
-              WHERE TIMESTAMP_MILLIS(last_modified_time) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 30 MINUTE)
+              WHERE TIMESTAMP_MILLIS(last_modified_time) >= TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 72 HOUR)
               """
               result = client.query(query).result()
               for row in result:
@@ -59,13 +59,13 @@ jobs:
           EOF
 
       - name: dbt deps
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt deps --profiles-dir .
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
       - name: dbt build (prod)
-        if: steps.check.outputs.changed == 'true'
+        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt build --profiles-dir . --target prod
         env:
           DBT_KEYFILE: /tmp/gcp_key.json

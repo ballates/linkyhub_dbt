@@ -22,18 +22,6 @@ Pipeline analytique dbt transformant les données LinkedIn en KPIs visualisés s
 
 ## Architecture
 
-```
-Sources (Fivetran)
-      ↓
-Bronze — bronze_linki   →  Vues staging (données brutes nettoyées)
-      ↓
-Silver — silver_linki   →  Tables intermédiaires (normalisées, dédupliquées)
-      ↓
-Gold   — gold_linki     →  Tables analytiques finales (dims & facts)
-      ↓
-Power BI                →  Rapport de visualisation des KPIs LinkedIn
-```
-
 Les schemas sont séparés par environnement :
 
 | Environnement | Schemas |
@@ -44,28 +32,31 @@ Les schemas sont séparés par environnement :
 ### Flux complet des données
 
 ```mermaid
-flowchart TD
-    subgraph sources ["📥 Sources — Fivetran"]
-        s1[(linki_bucket_set)]
-        s2[(google_drive)]
+flowchart LR
+    manuel["🙋 Dépôt manuel"] -->|"upload"| bucket[("linki_bucket_set")]
+    fivetran["📥 Fivetran"] -->|"sync"| gdrive[("google_drive")]
+
+    subgraph bq ["🗄️ BigQuery"]
+        direction LR
+        bucket
+        gdrive
+        bronze[("🥉 bronze_linki\nvues")]
+        silver[("🥈 silver_linki\ntables")]
+        gold[("🥇 gold_linki\nfacts & dims")]
     end
 
-    subgraph bronze ["🥉 Bronze — bronze_linki"]
-        stg[8 vues staging\nstg_*]
+    subgraph dbt ["⚙️ dbt"]
+        direction LR
+        stg["staging\nstg_*"] -->|"normalise"| int["intermediate\nint_*"] -->|"agrège"| mart["marts\nfct_* · dim_*"]
     end
 
-    subgraph silver ["🥈 Silver — silver_linki"]
-        int[8 tables intermédiaires\nint_*]
-    end
+    bucket -->|"lecture"| stg
+    gdrive -->|"lecture"| stg
+    stg -->|"matérialise vues"| bronze
+    int -->|"matérialise tables"| silver
+    mart -->|"matérialise incrémental"| gold
 
-    subgraph gold ["🥇 Gold — gold_linki"]
-        fct[2 facts incrémentales\nfct_posts · fct_abonnes]
-        dim[9 dimensions\ndim_*]
-    end
-
-    powerbi[📊 Power BI\nKPIs LinkedIn]
-
-    sources --> bronze --> silver --> gold --> powerbi
+    gold -->|"consommation"| powerbi["📊 Power BI"]
 ```
 
 ### Clés surrogates
@@ -75,16 +66,6 @@ Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des c
 ```sql
 FARM_FINGERPRINT(CONCAT(champ1, '|', champ2)) AS id_model
 ```
-
-### Matérialisation
-
-```mermaid
-flowchart LR
-    v[Vue\nstaging] -->|lecture seule\npas de stockage| t
-    t[Table\nintermediate & dims] -->|recréée\nà chaque build| i
-    i[Table incrémentale\nfct_posts · fct_abonnes] -->|merge sur\nunique_key| bq[(BigQuery)]
-```
-
 ---
 
 ## Sources de données
@@ -166,14 +147,18 @@ Contrôle le nom du schema selon l'environnement.
 
 ### Installation
 
+Ce projet utilise [uv](https://github.com/astral-sh/uv) pour la gestion de l'environnement virtuel et des dépendances.
+
 ```bash
-# Créer et activer l'environnement virtuel
-python -m venv .venv
+# Installer uv (si pas déjà installé)
+pip install uv
+
+# Créer l'environnement virtuel et installer les dépendances
+uv venv
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
 
-# Installer les dépendances
-pip install dbt-bigquery>=1.11.0
+uv pip install "dbt-bigquery>=1.11.0"
 
 # Installer les packages dbt
 dbt deps
@@ -252,74 +237,41 @@ Trois workflows GitHub Actions :
 ### Vue d'ensemble
 
 ```mermaid
-flowchart TD
-    dev[👨‍💻 Développeur] -->|git push| branch[Branche feature/ben]
-    branch -->|Pull Request| ci
+flowchart LR
+    dev[👨‍💻 Dev] -->|"git push"| branch[feature/ben]
 
-    subgraph ci [" ci.yml — Validation PR"]
-        c1[dbt compile] --> c2[dbt build target dev]
-        c2 --> c3{Tests passent ?}
-        c3 -->|❌ FAIL| block[PR bloquée]
-        c3 -->|✅ PASS| ok[PR approuvée]
+    subgraph ci ["ci.yml — PR vers main"]
+        branch -->|"ouvre PR"| c1[compile] -->|"vérifie SQL"| c2[build dev] -->|"146 tests"| c3{Tests ?}
+        c3 -->|"❌ échec"| block[PR bloquée]
     end
 
-    ok -->|Merge dans main| deploy
-
-    subgraph deploy [" deploy.yml — Déploiement"]
-        d1[dbt build target prod] --> d2[dbt docs generate]
-        d2 --> d3[GitHub Pages]
+    subgraph deploy ["deploy.yml — merge dans main"]
+        d1[build prod] -->|"déploie"| d2[docs generate] -->|"publie"| d3[GitHub Pages]
     end
 
-    subgraph trigger [" auto-trigger.yml — Schedule"]
-        t1[Lun / Jeu / Sam à 8h] --> t2{BigQuery modifié ?}
-        t2 -->|❌ NON| t3[Rien]
-        t2 -->|✅ OUI| t4[dbt build target prod]
+    subgraph trigger ["auto-trigger.yml — schedule Lun/Jeu/Sam 8h"]
+        fivetran[Fivetran] -->|"sync LinkedIn"| bq[(BigQuery)] -->|"polling"| t2{BQ modifié ?}
+        t2 -->|"❌ rien à faire"| t3[Stop]
     end
 
-    fivetran[Fivetran] -->|Sync données LinkedIn| bq[(BigQuery\nlinki_bucket_set\ngoogle_drive)]
-    bq --> t2
+    c3 -->|"✅ auto-merge"| d1
+    t2 -->|"✅ données nouvelles"| d1
 ```
 
 ### Workflow CI — Pull Request
 
 ```mermaid
-sequenceDiagram
-    participant Dev as 👨‍💻 Développeur
-    participant GH as GitHub
-    participant CI as ci.yml
-    participant BQ as BigQuery dev_*
-
-    Dev->>GH: git push + Pull Request
-    GH->>CI: Déclenche ci.yml
-    CI->>BQ: dbt compile
-    CI->>BQ: dbt build --target dev
-    BQ-->>CI: 146 tests
-    alt Tests PASS
-        CI-->>GH: ✅ Succès
-        GH-->>Dev: PR approuvée → merge possible
-    else Tests FAIL
-        CI-->>GH: ❌ Échec
-        GH-->>Dev: Email notification + PR bloquée
-    end
+flowchart LR
+    dev[👨‍💻 Dev] -->|"git push + PR"| gh[GitHub] -->|"déclenche ci.yml"| c1[dbt compile] -->|"vérifie SQL"| c2[dbt build dev] -->|"146 tests"| c3{Tests ?}
+    c3 -->|"❌ échec"| fail[PR bloquée\nEmail notification]
+    c3 -->|"✅ succès"| ok[PR approuvée\nauto-merge]
 ```
 
 ### Workflow Deploy — Merge dans main
 
 ```mermaid
-sequenceDiagram
-    participant Dev as 👨‍💻 Développeur
-    participant GH as GitHub
-    participant D as deploy.yml
-    participant BQ as BigQuery prod
-    participant GP as GitHub Pages
-
-    Dev->>GH: Merge PR dans main
-    GH->>D: Déclenche deploy.yml
-    D->>BQ: dbt build --target prod
-    BQ-->>D: ✅ Tables prod mises à jour
-    D->>D: dbt docs generate
-    D->>GP: Déploiement documentation
-    GP-->>Dev: Docs disponibles en ligne
+flowchart LR
+    dev[👨‍💻 Dev] -->|"merge PR dans main"| gh[GitHub] -->|"déclenche deploy.yml"| d1[dbt build prod] -->|"tables mises à jour"| d2[dbt docs generate] -->|"déploiement"| d3[GitHub Pages] -->|"docs disponibles"| dev
 ```
 
 ### Workflow Auto-trigger — Schedule BigQuery
@@ -329,7 +281,7 @@ flowchart LR
     cron["⏰ Lun / Jeu / Sam\n8h00"] --> check
 
     subgraph check ["Vérification BigQuery"]
-        q[__TABLES__\nlast_modified_time ≥ 30 min] --> result{Changement ?}
+        q[__TABLES__\nlast_modified_time ≥ 72h] --> result{Changement ?}
     end
 
     fivetran[Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
