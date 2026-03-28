@@ -22,18 +22,6 @@ Pipeline analytique dbt transformant les données LinkedIn en KPIs visualisés s
 
 ## Architecture
 
-```
-Sources (Fivetran)
-      ↓
-Bronze — bronze_linki   →  Vues staging (données brutes nettoyées)
-      ↓
-Silver — silver_linki   →  Tables intermédiaires (normalisées, dédupliquées)
-      ↓
-Gold   — gold_linki     →  Tables analytiques finales (dims & facts)
-      ↓
-Power BI                →  Rapport de visualisation des KPIs LinkedIn
-```
-
 Les schemas sont séparés par environnement :
 
 | Environnement | Schemas |
@@ -44,28 +32,8 @@ Les schemas sont séparés par environnement :
 ### Flux complet des données
 
 ```mermaid
-flowchart TD
-    subgraph sources ["📥 Sources — Fivetran"]
-        s1[(linki_bucket_set)]
-        s2[(google_drive)]
-    end
-
-    subgraph bronze ["🥉 Bronze — bronze_linki"]
-        stg[8 vues staging\nstg_*]
-    end
-
-    subgraph silver ["🥈 Silver — silver_linki"]
-        int[8 tables intermédiaires\nint_*]
-    end
-
-    subgraph gold ["🥇 Gold — gold_linki"]
-        fct[2 facts incrémentales\nfct_posts · fct_abonnes]
-        dim[9 dimensions\ndim_*]
-    end
-
-    powerbi[📊 Power BI\nKPIs LinkedIn]
-
-    sources --> bronze --> silver --> gold --> powerbi
+flowchart LR
+    sources["📥 Fivetran"] -->|raw data| bronze["🥉 Bronze\nbronze_linki"] -->|dbt views| silver["🥈 Silver\nsilver_linki"] -->|dbt tables| gold["🥇 Gold\ngold_linki"] -->|BigQuery| powerbi["📊 Power BI"]
 ```
 
 ### Clés surrogates
@@ -252,32 +220,14 @@ Trois workflows GitHub Actions :
 ### Vue d'ensemble
 
 ```mermaid
-flowchart TD
-    dev[👨‍💻 Développeur] -->|git push| branch[Branche feature/ben]
-    branch -->|Pull Request| ci
+flowchart LR
+    dev[👨‍💻 Dev] -->|git push| branch[feature/ben] -->|PR| c1[compile] --> c2[build dev] --> c3{Tests ?}
+    c3 -->|❌| block[PR bloquée]
+    c3 -->|✅ merge main| d1[build prod] --> d2[docs] --> d3[GitHub Pages]
 
-    subgraph ci [" ci.yml — Validation PR"]
-        c1[dbt compile] --> c2[dbt build target dev]
-        c2 --> c3{Tests passent ?}
-        c3 -->|❌ FAIL| block[PR bloquée]
-        c3 -->|✅ PASS| ok[PR approuvée]
-    end
-
-    ok -->|Merge dans main| deploy
-
-    subgraph deploy [" deploy.yml — Déploiement"]
-        d1[dbt build target prod] --> d2[dbt docs generate]
-        d2 --> d3[GitHub Pages]
-    end
-
-    subgraph trigger [" auto-trigger.yml — Schedule"]
-        t1[Lun / Jeu / Sam à 8h] --> t2{BigQuery modifié ?}
-        t2 -->|❌ NON| t3[Rien]
-        t2 -->|✅ OUI| t4[dbt build target prod]
-    end
-
-    fivetran[Fivetran] -->|Sync données LinkedIn| bq[(BigQuery\nlinki_bucket_set\ngoogle_drive)]
-    bq --> t2
+    fivetran[Fivetran] -->|Sync| bq[(BigQuery)] --> t2{BQ modifié ?}
+    t2 -->|❌| t3[Stop]
+    t2 -->|✅ schedule| d1
 ```
 
 ### Workflow CI — Pull Request
