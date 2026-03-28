@@ -144,14 +144,18 @@ Contrôle le nom du schema selon l'environnement.
 
 ### Installation
 
+Ce projet utilise [uv](https://github.com/astral-sh/uv) pour la gestion de l'environnement virtuel et des dépendances.
+
 ```bash
-# Créer et activer l'environnement virtuel
-python -m venv .venv
+# Installer uv (si pas déjà installé)
+pip install uv
+
+# Créer l'environnement virtuel et installer les dépendances
+uv venv
 source .venv/bin/activate  # Linux/Mac
 .venv\Scripts\activate     # Windows
 
-# Installer les dépendances
-pip install dbt-bigquery>=1.11.0
+uv pip install "dbt-bigquery>=1.11.0"
 
 # Installer les packages dbt
 dbt deps
