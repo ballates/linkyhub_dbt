@@ -33,7 +33,7 @@ Les schemas sont séparés par environnement :
 
 ```mermaid
 flowchart LR
-    manuel["🙋 Dépôt manuel"] -->|"upload"| bucket[("linki_bucket_set")]
+    manuel["🙋 Dépôt manuel"] -->|"charger"| bucket[("linki_bucket_set")]
     fivetran["📥 Fivetran"] -->|"sync"| gdrive[("google_drive")]
 
     subgraph bq ["🗄️ BigQuery"]
@@ -247,8 +247,8 @@ flowchart LR
 
     subgraph trigger ["auto-trigger.yml — Lun/Jeu/Sam 8h"]
         bq[(BigQuery)] -->|"polling"| t2{BQ modifie ?}
-        t2 -->|"OUI"| build[dbt build prod]
-        t2 -->|"NON"| stop[Stop]
+        t2 -->| ✅ OUI | build[dbt build prod]
+        t2 -->| ❌ NON | stop[Stop]
     end
 
     branch --> c1
@@ -264,7 +264,7 @@ flowchart LR
         q[__TABLES__\nlast_modified_time ≥ 72h] --> result{Changement ?}
     end
 
-    fivetran[Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
+    fivetran[📥 Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
     bq --> q
 
     result -->|❌ NON| stop[Workflow terminé\nRien à faire]
