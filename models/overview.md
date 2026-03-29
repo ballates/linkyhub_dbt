@@ -4,54 +4,14 @@
 
 Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique structuré et documenté, hébergé sur **BigQuery**.
 
----
-
-## Table des matières
-
-| # | Section |
-|---|---|
-| 1 | Flux complet des données |
-| 2 | Objectif |
-| 3 | Sources de données |
-| 4 | Modèles |
-| 5 | Clés surrogates |
-| 6 | Qualité des données |
-| 7 | Power BI |
-| 8 | CI/CD |
-| 9 | Navigation |
-
----
-
 ## Flux complet des données
 
-```mermaid
-flowchart TD
-    classDef src fill:#1565C0,color:#fff,stroke:#0D47A1
-    classDef bronze fill:#6D4C41,color:#fff,stroke:#4E342E
-    classDef silver fill:#455A64,color:#fff,stroke:#37474F
-    classDef gold fill:#E65100,color:#fff,stroke:#BF360C
-    classDef pbi fill:#4A148C,color:#fff,stroke:#38006B
-
-    S1([linki_bucket_set]):::src
-    S2([google_drive]):::src
-
-    subgraph BRONZE[bronze_linki]
-        STG[Staging · stg_*]:::bronze
-    end
-
-    subgraph SILVER[silver_linki]
-        INT[Intermediate · int_*]:::silver
-    end
-
-    subgraph GOLD[gold_linki]
-        MRT[Marts · fct_* / dim_*]:::gold
-    end
-
-    S1 & S2 --> STG
-    STG --> INT
-    INT --> MRT
-    MRT --> PBI([Power BI]):::pbi
-```
+| Origine | Couche | Schéma | Modèles | Destination |
+|---|---|---|---|---|
+| `linki_bucket_set` | Staging | `bronze_linki` | `stg_*` (vues) | ↓ |
+| `google_drive` | Staging | `bronze_linki` | `stg_*` (vues) | ↓ |
+| — | Intermediate | `silver_linki` | `int_*` (tables) | ↓ |
+| — | Marts | `gold_linki` | `fct_*` / `dim_*` (incrémental) | **Power BI** |
 
 | Couche | Schéma | Matérialisation | Rôle |
 |---|---|---|---|
@@ -94,18 +54,14 @@ Alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **
 
 Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des clés uniques :
 
-```sql
-FARM_FINGERPRINT(CONCAT(champ1, '|', champ2)) AS id_model
-```
-
 ---
 
 ## Qualité des données
 
-**146 tests automatisés** couvrant :
+**Plusieurs tests automatisés** couvrant :
 
 - Unicité et non-nullité des clés surrogates (`id_*`)
-- Valeurs acceptées (ex: direction `OUTGOING` / `INCOMING`)
+- Valeurs acceptées
 - Plages de valeurs numériques (impressions, interactions, pourcentages)
 - Intégrité référentielle entre facts et dimensions
 - Validation de formats (emails, URLs LinkedIn)
