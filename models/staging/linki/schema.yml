@@ -5,7 +5,7 @@ models:
     description: "Table staging des invitations LinkedIn"
     columns:
       - name: id_invitation
-        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT expéditeur+destinataire+date)"
+        description: "Clé surrogate de l'invitation (generate_surrogate_key expéditeur+destinataire+date)"
         tests:
           - not_null
           - unique
@@ -23,7 +23,8 @@ models:
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
           - accepted_values:
-              values: ['OUTGOING', 'INCOMING']
+              arguments:
+                values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -37,7 +38,7 @@ models:
     description: "Table staging des certifications LinkedIn"
     columns:
       - name: id_certification
-        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        description: "Clé surrogate de la certification (generate_surrogate_key nom+organisme+numéro)"
         tests:
           - not_null
       - name: name
@@ -63,7 +64,7 @@ models:
     description: "Table staging des connexions LinkedIn"
     columns:
       - name: id_connection
-        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
+        description: "Clé surrogate de la connexion (generate_surrogate_key nom+prénom+URL+email)"
         tests:
           - not_null
       - name: first_name
@@ -112,6 +113,10 @@ models:
   - name: stg_abonnes
     description: "Table staging des abonnés LinkedIn"
     columns:
+      - name: id_abonne
+        description: "Clé surrogate de l'abonné (generate_surrogate_key sur la date)"
+        tests:
+          - not_null
       - name: date_
         description: "Date de référence de la métrique (clé naturelle)"
         tests:
@@ -121,8 +126,13 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
+              arguments:
+                min_value: 0
+                max_value: 10000
+      - name: _periode
+        description: "Identifiant de la période d'export (ex: 2025_01_21_2026_01_20)"
+        tests:
+          - not_null
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -131,6 +141,10 @@ models:
   - name: stg_donnees_geo
     description: "Table staging des données démographiques LinkedIn"
     columns:
+      - name: id_donnee_geo
+        description: "Clé surrogate de la donnée géo (generate_surrogate_key catégorie+valeur)"
+        tests:
+          - not_null
       - name: principales_donnees_demographiques
         description: "Catégorie démographique (ex: Lieux, Secteurs, Niveau hiérarchique)"
         tests:
@@ -143,6 +157,10 @@ models:
         description: "Libellé associé à la catégorie démographique"
         tests:
           - not_null
+      - name: _periode
+        description: "Identifiant de la période d'export"
+        tests:
+          - not_null
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -151,6 +169,10 @@ models:
   - name: stg_interactions
     description: "Table staging des interactions sur les posts LinkedIn"
     columns:
+      - name: id_post
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id_post LinkedIn)"
+        tests:
+          - not_null
       - name: url_du_post
         description: "URL du post LinkedIn"
         tests:
@@ -164,8 +186,13 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
+      - name: _periode
+        description: "Identifiant de la période d'export"
+        tests:
+          - not_null
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -174,19 +201,28 @@ models:
   - name: stg_posts
     description: "Table staging des posts LinkedIn"
     columns:
+      - name: id_post
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id_post LinkedIn)"
+        tests:
+          - not_null
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
       - name: url_du_post
-        description: "URL du post LinkedIn (clé naturelle)"
+        description: "URL du post LinkedIn"
         tests:
           - not_null
       - name: date_de_publication_du_post
         description: "Date de publication du post (STRING brut)"
+        tests:
+          - not_null
+      - name: _periode
+        description: "Identifiant de la période d'export"
         tests:
           - not_null
       - name: _at_load
