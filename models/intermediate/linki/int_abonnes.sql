@@ -28,4 +28,7 @@ SELECT
     -- ================================================================
     _at_load
 FROM {{ ref('stg_abonnes') }}
-QUALIFY ROW_NUMBER() OVER (PARTITION BY date ORDER BY nouveaux_abonnes DESC) = 1
+QUALIFY ROW_NUMBER() OVER (
+    PARTITION BY date_
+    ORDER BY SAFE.PARSE_DATE('%Y_%m_%d', RIGHT(_periode, 10)) DESC
+) = 1

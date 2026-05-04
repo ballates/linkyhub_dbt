@@ -5,7 +5,8 @@
 
   Description :
     Table de faits des abonnés LinkedIn. Évolution quotidienne des nouveaux abonnés.
-    Modèle incrémental : merge sur date, nouvelles dates uniquement.
+    Modèle incrémental : merge sur date. Retraite toutes les dates à chaque run
+    (pas de filtre WHERE) pour permettre la mise à jour des valeurs révisées.
 */
 
 {{ config(
@@ -27,7 +28,3 @@ SELECT
     -- ================================================================
     CURRENT_TIMESTAMP() AS _at_load
 FROM {{ ref('int_abonnes') }}
-
-{% if is_incremental() %}
-  WHERE date > (SELECT COALESCE(MAX(date), CAST('1900-01-01' AS DATE)) FROM {{ this }})
-{% endif %}

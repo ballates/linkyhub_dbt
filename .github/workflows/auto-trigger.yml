@@ -29,7 +29,7 @@ jobs:
         run: echo '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}' > /tmp/gcp_key.json
 
       - name: Vérifier si les tables BigQuery ont changé
-        id: check
+        id: check-bq
         env:
           GOOGLE_APPLICATION_CREDENTIALS: /tmp/gcp_key.json
         run: |
@@ -61,14 +61,26 @@ jobs:
           print(f"Tables modifiées : {changed}")
           EOF
 
+      - name: Vérifier si le code dbt a changé (72h)
+        id: check-code
+        run: |
+          CHANGED=$(git log --since="72 hours ago" --oneline -- models/ macros/ dbt_project.yml | wc -l)
+          if [ "$CHANGED" -gt 0 ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changements dbt détectés : $CHANGED commit(s)"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "Aucun changement dbt dans les 72 dernières heures"
+          fi
+
       - name: dbt deps
-        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.check-bq.outputs.changed == 'true' || steps.check-code.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt deps --profiles-dir .
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
       - name: dbt build (prod)
-        if: steps.check.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.check-bq.outputs.changed == 'true' || steps.check-code.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: dbt build --profiles-dir . --target prod
         env:
           DBT_KEYFILE: /tmp/gcp_key.json

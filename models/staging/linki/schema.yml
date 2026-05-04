@@ -89,6 +89,10 @@ models:
   - name: stg_learning
     description: "Table staging des formations LinkedIn Learning"
     columns:
+      - name: id_learning
+        description: "Clé surrogate de la formation (generate_surrogate_key sur le titre)"
+        tests:
+          - not_null
       - name: title
         description: "Titre du contenu de formation LinkedIn Learning"
       - name: description

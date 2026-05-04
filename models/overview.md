@@ -52,7 +52,29 @@ Alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **
 
 ## Clés surrogates
 
-Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des clés uniques :
+Toutes les dimensions et facts utilisent `dbt_utils.generate_surrogate_key` pour générer des clés uniques. Pour les modèles historisés (`stg_posts`, `stg_interactions`, `stg_abonnes`, `stg_donnees_geo`), les clés sont générées dès la couche staging et propagées telles quelles.
+
+---
+
+## Historisation des exports LinkedIn
+
+LinkedIn exporte les données sur une **fenêtre glissante d'un an**. Chaque export est ajouté via `UNION ALL` en staging. Deux stratégies de consolidation sont appliquées en intermediate :
+
+| Métrique | Stratégie | Raison |
+|---|---|---|
+| **Impressions** | Pro-rata temporis | Fenêtre glissante → risque de double comptage |
+| **Interactions** | Export le plus récent | Métrique de stock, peut baisser (unlike) |
+
+**Pro-rata temporis :** `contribution = impressions × (jours_nouveaux / 365)`
+
+---
+
+## Traçabilité (`_at_load`)
+
+| Couche | Valeur | Signification |
+|---|---|---|
+| Staging | `_fivetran_synced` | Quand Fivetran a chargé les données sources |
+| Marts | `CURRENT_TIMESTAMP()` | Quand dbt a matérialisé la ligne en table |
 
 ---
 

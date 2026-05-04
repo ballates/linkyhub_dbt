@@ -17,7 +17,7 @@ WITH export_2025_01_21_2026_01_20 AS (
         date_de_publication_du_post,
         interactions,
         '2025_01_21_2026_01_20'                            AS _periode,
-        CURRENT_TIMESTAMP()                                AS _at_load
+        _fivetran_synced                                   AS _at_load
     FROM {{ source('google_drive', 'contenu_2025_01_21_2026_01_20_ben_mbairo_interactions') }}
 ),
 
@@ -28,7 +28,7 @@ export_2025_04_16_2026_04_15 AS (
         date_de_publication_du_post,
         interactions,
         '2025_04_16_2026_04_15'                            AS _periode,
-        CURRENT_TIMESTAMP()                                AS _at_load
+        _fivetran_synced                                   AS _at_load
     FROM {{ source('google_drive', 'aggregate_analytics_ben_mbairo_2025_04_16_2026_04_15_interactions') }}
 ),
 

@@ -5,7 +5,7 @@ models:
     description: "Table intermédiaire des invitations LinkedIn avec normalisation des types"
     columns:
       - name: id_invitation
-        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT expéditeur+destinataire+date)"
+        description: "Clé surrogate de l'invitation (generate_surrogate_key expéditeur+destinataire+date)"
         tests:
           - not_null
           - unique
@@ -23,7 +23,8 @@ models:
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
           - accepted_values:
-              values: ['OUTGOING', 'INCOMING']
+              arguments:
+                values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -37,7 +38,7 @@ models:
     description: "Table intermédiaire des certifications LinkedIn avec normalisation des types"
     columns:
       - name: id_certification
-        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        description: "Clé surrogate de la certification (generate_surrogate_key nom+organisme+numéro)"
         tests:
           - not_null
           - unique
@@ -64,7 +65,7 @@ models:
     description: "Table intermédiaire des formations LinkedIn Learning avec normalisation des types"
     columns:
       - name: id_learning
-        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre)"
+        description: "Clé surrogate de la formation (generate_surrogate_key du titre)"
         tests:
           - not_null
           - unique
@@ -93,7 +94,7 @@ models:
     description: "Table intermédiaire des connexions LinkedIn avec normalisation des types"
     columns:
       - name: id_connection
-        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
+        description: "Clé surrogate de la connexion (generate_surrogate_key nom+prénom+URL+email)"
         tests:
           - not_null
           - unique
@@ -119,6 +120,11 @@ models:
   - name: int_abonnes
     description: "Table intermédiaire des abonnés LinkedIn avec normalisation des types"
     columns:
+      - name: id_abonne
+        description: "Clé surrogate de l'abonné (generate_surrogate_key sur la date)"
+        tests:
+          - not_null
+          - unique
       - name: date
         description: "Date de référence de la métrique (clé naturelle)"
         tests:
@@ -129,8 +135,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
+              arguments:
+                min_value: 0
+                max_value: 10000
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -144,7 +151,7 @@ models:
         tests:
           - not_null
       - name: id_value
-        description: "Clé surrogate de la valeur (FARM_FINGERPRINT catégorie+valeur) — inclut la catégorie pour éviter les collisions inter-catégories"
+        description: "Clé surrogate de la valeur (generate_surrogate_key catégorie+valeur) — inclut la catégorie pour éviter les collisions inter-catégories"
         tests:
           - not_null
           - unique
@@ -153,8 +160,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 100
+              arguments:
+                min_value: 0
+                max_value: 100
       - name: valeur
         description: "Libellé associé à la catégorie démographique"
         tests:
@@ -167,6 +175,13 @@ models:
   - name: int_interactions
     description: "Table intermédiaire des interactions sur les posts LinkedIn avec normalisation des types"
     columns:
+      - name: id_post
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id LinkedIn)"
+        tests:
+          - not_null
+          - unique
+      - name: title_post
+        description: "Titre du post extrait depuis le slug de l'URL (nouveau format LinkedIn)"
       - name: url_post
         description: "URL du post LinkedIn"
         tests:
@@ -180,8 +195,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -191,17 +207,20 @@ models:
     description: "Table intermédiaire des posts LinkedIn avec normalisation des types"
     columns:
       - name: id_post
-        description: "Clé surrogate du post (FARM_FINGERPRINT de l'URL)"
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id LinkedIn)"
         tests:
           - not_null
           - unique
+      - name: title_post
+        description: "Titre du post extrait depuis le slug de l'URL (nouveau format LinkedIn)"
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
       - name: url_post
         description: "URL du post LinkedIn"
         tests:

@@ -4,18 +4,16 @@ models:
   - name: fct_posts
     description: "Table de fait centrale de l'activité LinkedIn - grain : 1 ligne par post - combine les impressions et interactions des posts LinkedIn"
     columns:
-      - name: post_id
-        description: "Clé étrangère référençant dim_posts (id_post de la dimension)"
+      - name: id_post
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id LinkedIn)"
         tests:
           - not_null
           - unique
-          - relationships:
-              to: ref('dim_posts')
-              field: id_post
       - name: url_post
         description: "URL unique du post LinkedIn"
         tests:
           - not_null
+          - unique
       - name: date_publication_post
         description: "Date de publication du post"
         tests:
@@ -28,15 +26,16 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
       - name: interactions
-        description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - par défaut 0 si aucune interaction"
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - NULL si absent de l'export"
         tests:
-          - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 1000000
+              arguments:
+                min_value: 0
+                max_value: 1000000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
         tests:
@@ -58,8 +57,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 10000
+              arguments:
+                min_value: 0
+                max_value: 10000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
         tests:
@@ -83,22 +83,25 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 2021
-              max_value: 2035
+              arguments:
+                min_value: 2021
+                max_value: 2035
       - name: trimestre
         description: "Trimestre (1, 2, 3, ou 4)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 1
-              max_value: 4
+              arguments:
+                min_value: 1
+                max_value: 4
       - name: mois
         description: "Mois (1 à 12)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 1
-              max_value: 12
+              arguments:
+                min_value: 1
+                max_value: 12
       - name: nom_mois
         description: "Nom du mois en anglais (January, February, etc.)"
         tests:
@@ -112,15 +115,17 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 53
+              arguments:
+                min_value: 0
+                max_value: 53
       - name: jour
         description: "Jour du mois (1 à 31)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 1
-              max_value: 31
+              arguments:
+                min_value: 1
+                max_value: 31
       - name: nom_jour
         description: "Nom du jour en anglais (Monday, Tuesday, etc.)"
         tests:
@@ -134,7 +139,7 @@ models:
     description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique"
     columns:
       - name: id_post
-        description: "Clé surrogate du post (FARM_FINGERPRINT de l'URL)"
+        description: "Clé surrogate du post (generate_surrogate_key de l'URL)"
         tests:
           - not_null
           - unique
@@ -156,7 +161,7 @@ models:
     description: "Dimension des connexions LinkedIn - grain : 1 ligne par contact unique"
     columns:
       - name: id_connection
-        description: "Clé surrogate de la connexion (FARM_FINGERPRINT nom+prénom+URL+email)"
+        description: "Clé surrogate de la connexion (generate_surrogate_key nom+prénom+URL+email)"
         tests:
           - not_null
           - unique
@@ -171,12 +176,14 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^https://www\\.linkedin\\.com/.*'
+              arguments:
+                regex: '^https://www\\.linkedin\\.com/.*'
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+              arguments:
+                regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -188,7 +195,7 @@ models:
     description: "Dimension des invitations LinkedIn - grain : 1 ligne par invitation unique"
     columns:
       - name: id_invitation
-        description: "Clé surrogate de l'invitation (FARM_FINGERPRINT expéditeur+destinataire+date)"
+        description: "Clé surrogate de l'invitation (generate_surrogate_key expéditeur+destinataire+date)"
         tests:
           - not_null
           - unique
@@ -203,7 +210,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['OUTGOING', 'INCOMING']
+              arguments:
+                values: ['OUTGOING', 'INCOMING']
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
       - name: message
@@ -217,7 +225,7 @@ models:
     description: "Dimension des zones géographiques LinkedIn - grain : 1 ligne par zone unique"
     columns:
       - name: id_area
-        description: "Clé surrogate de la zone (FARM_FINGERPRINT catégorie+libellé)"
+        description: "Clé surrogate de la zone (generate_surrogate_key catégorie+libellé)"
         tests:
           - not_null
           - unique
@@ -230,16 +238,18 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 100
+              arguments:
+                min_value: 0
+                max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              column_type: numeric
+              arguments:
+                column_type: numeric
 
   - name: dim_hierarchy_level
     description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau"
     columns:
       - name: id_hierarchy_level
-        description: "Clé surrogate du niveau (FARM_FINGERPRINT catégorie+libellé)"
+        description: "Clé surrogate du niveau (generate_surrogate_key catégorie+libellé)"
         tests:
           - not_null
           - unique
@@ -252,16 +262,18 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 100
+              arguments:
+                min_value: 0
+                max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              column_type: numeric
+              arguments:
+                column_type: numeric
 
   - name: dim_learning
     description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par formation unique"
     columns:
       - name: id_learning
-        description: "Clé surrogate de la formation (FARM_FINGERPRINT du titre)"
+        description: "Clé surrogate de la formation (generate_surrogate_key du titre)"
         tests:
           - not_null
           - unique
@@ -286,7 +298,7 @@ models:
     description: "Dimension des certifications LinkedIn - grain : 1 ligne par certification unique"
     columns:
       - name: id_certification
-        description: "Clé surrogate de la certification (FARM_FINGERPRINT nom+organisme+numéro)"
+        description: "Clé surrogate de la certification (generate_surrogate_key nom+organisme+numéro)"
         tests:
           - not_null
           - unique
@@ -309,7 +321,7 @@ models:
     description: "Dimension des secteurs d'activité LinkedIn - grain : 1 ligne par secteur"
     columns:
       - name: id_sector
-        description: "Clé surrogate du secteur (FARM_FINGERPRINT catégorie+libellé)"
+        description: "Clé surrogate du secteur (generate_surrogate_key catégorie+libellé)"
         tests:
           - not_null
           - unique
@@ -322,7 +334,9 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              min_value: 0
-              max_value: 100
+              arguments:
+                min_value: 0
+                max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              column_type: numeric
+              arguments:
+                column_type: numeric

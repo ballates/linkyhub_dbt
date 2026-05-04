@@ -24,4 +24,3 @@ SELECT
     saved,
     notes
 FROM {{ ref('int_learning') }}
-WHERE title IS NOT NULL
