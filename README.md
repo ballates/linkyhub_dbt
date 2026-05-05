@@ -61,11 +61,39 @@ flowchart LR
 
 ### Clés surrogates
 
-Toutes les dimensions et facts utilisent `FARM_FINGERPRINT` pour générer des clés uniques :
+Toutes les dimensions et facts utilisent `dbt_utils.generate_surrogate_key` pour générer des clés uniques :
 
 ```sql
-FARM_FINGERPRINT(CONCAT(champ1, '|', champ2)) AS id_model
+{{ dbt_utils.generate_surrogate_key(['champ1', 'champ2']) }} AS id_model
 ```
+
+Les clés sont générées **en couche staging** pour les modèles historisés (`stg_posts`, `stg_interactions`, `stg_abonnes`, `stg_donnees_geo`), et propagées telles quelles jusqu'en marts.
+
+---
+
+### Historisation des exports LinkedIn
+
+LinkedIn exporte les données sur une **fenêtre glissante d'un an**. Chaque nouvel export est ajouté via `UNION ALL` dans le staging. Deux stratégies de consolidation sont appliquées en intermediate :
+
+| Métrique | Stratégie | Raison |
+|---|---|---|
+| **Impressions** | Pro-rata temporis | Fenêtre glissante → risque de double comptage |
+| **Interactions** | Export le plus récent | Métrique de stock, peut baisser (unlike) |
+
+**Pro-rata temporis :** chaque export contribue proportionnellement aux jours nouveaux qu'il couvre :
+```
+contribution = impressions × (jours_nouveaux / 365)
+```
+
+---
+
+### Traçabilité (`_at_load`)
+
+| Couche | Valeur | Signification |
+|---|---|---|
+| Staging | `_fivetran_synced` | Quand Fivetran a chargé les données sources |
+| Marts | `CURRENT_TIMESTAMP()` | Quand dbt a matérialisé la ligne en table |
+
 ---
 
 ## Sources de données
@@ -114,6 +142,14 @@ Données synchronisées via **Fivetran** :
 | `metaplane/dbt_expectations` | 0.10.10 | Tests avancés : plages de valeurs, types de données, expressions régulières |
 
 ### Macros custom
+
+#### `decode_url_slug`
+Décode les caractères URL-encodés dans un slug LinkedIn et capitalise la première lettre.
+```sql
+{{ decode_url_slug("REGEXP_REPLACE(REPLACE(REGEXP_EXTRACT(url, r'_(.+)-\\d{10,}'), '-', ' '), r'\\s*(ugcPost|share)\\s*$', '')") }}
+-- 'd%C3%A9couvrir le r%C3%A9seau' → 'Découvrir le réseau'
+```
+Utilisée dans : `int_posts`, `int_interactions`
 
 #### `normalize_email`
 Normalise une adresse email en minuscules et supprime les espaces.
@@ -287,7 +323,7 @@ La documentation dbt est générée automatiquement et publiée sur GitHub Pages
 
 ## Bonnes pratiques
 
-- **Clés surrogates** : utilisation de `FARM_FINGERPRINT(CONCAT(...))` sur toutes les dimensions et facts
+- **Clés surrogates** : utilisation de `dbt_utils.generate_surrogate_key` sur toutes les dimensions et facts, générées dès la couche staging pour les modèles historisés
 - **Déduplication** : `QUALIFY ROW_NUMBER() OVER (...) = 1` en couche intermediate
 - **Modèles incrémentaux** : `fct_posts` et `fct_abonnes` en `merge` pour éviter les rechargements complets
 - **Séparation dev/prod** : la macro `generate_schema_name` préfixe `dev_` en local, sans préfixe en prod

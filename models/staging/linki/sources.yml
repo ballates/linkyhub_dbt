@@ -78,6 +78,18 @@ sources:
     database: prime-force-478609-s4
     schema: google_drive
     tables:
+      - name: aggregate_analytics_ben_mbairo_2025_04_16_2026_04_15_abonnes
+        description: "Table source des abonnés LinkedIn (export 2025-04-16 / 2026-04-15) issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: date_
+            description: "Date de l'abonnement"
+          - name: nouveaux_abonnes
+            description: "Nombre de nouveaux abonnés sur la période"
+
       - name: contenu_2025_01_21_2026_01_20_ben_mbairo_abonnes
         description: "Table source des abonnés LinkedIn issue de Google Drive via Fivetran"
         columns:
@@ -89,6 +101,20 @@ sources:
             description: "Date de l'abonnement"
           - name: nouveaux_abonnes
             description: "Nombre de nouveaux abonnés sur la période"
+
+      - name: aggregate_analytics_ben_mbairo_2025_04_16_2026_04_15_donnees_demographiques
+        description: "Table source des données démographiques LinkedIn (export 2025-04-16 / 2026-04-15) issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: principales_donnees_demographiques
+            description: "Catégorie ou critère démographique principal (pays, ville, secteur, etc.)"
+          - name: pourcentage
+            description: "Pourcentage de l'audience correspondant à la catégorie"
+          - name: valeur
+            description: "Valeur absolue ou libellé associé à la catégorie démographique"
 
       - name: contenu_2025_01_21_2026_01_20_ben_mbairo_donnees_demographiques
         description: "Table source des données démographiques LinkedIn issue de Google Drive via Fivetran"
@@ -104,6 +130,20 @@ sources:
           - name: valeur
             description: "Valeur absolue ou libellé associé à la catégorie démographique"
       
+      - name: aggregate_analytics_ben_mbairo_2025_04_16_2026_04_15_interactions
+        description: "Table source des interactions LinkedIn (export 2025-04-16 / 2026-04-15) issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: url_du_post
+            description: "URL du post LinkedIn"
+          - name: date_de_publication_du_post
+            description: "Date de publication du post"
+          - name: interactions
+            description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
+
       - name: contenu_2025_01_21_2026_01_20_ben_mbairo_interactions
         description: "Table source des interactions LinkedIn issue de Google Drive via Fivetran"
         columns:
@@ -118,6 +158,20 @@ sources:
           - name: interactions
             description: "Nombre total d'interactions sur le post (likes, commentaires, partages)"
             
+      - name: aggregate_analytics_ben_mbairo_2025_04_16_2026_04_15_posts
+        description: "Table source des posts LinkedIn (export 2025-04-16 / 2026-04-15) issue de Google Drive via Fivetran"
+        columns:
+          - name: _line
+            description: "Numéro de ligne technique"
+          - name: _fivetran_synced
+            description: "Date et heure de la dernière synchronisation Fivetran"
+          - name: impressions
+            description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
+          - name: url_du_post
+            description: "URL du post LinkedIn"
+          - name: date_de_publication_du_post
+            description: "Date de publication du post"
+
       - name: contenu_2025_01_21_2026_01_20_ben_mbairo_posts
         description: "Table source des posts LinkedIn issue de Google Drive via Fivetran"
         columns:

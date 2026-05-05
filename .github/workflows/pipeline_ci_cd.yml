@@ -44,8 +44,23 @@ jobs:
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
-      - name: dbt build + test (dev)
-        run: dbt build --profiles-dir . --target dev
+      - name: Download prod manifest (state)
+        run: |
+          mkdir -p /tmp/prod_state
+          curl -sf -o /tmp/prod_state/manifest.json \
+            https://ballates.github.io/linkyhub_dbt/manifest.json \
+            && echo "Prod manifest téléchargé" \
+            || echo "Pas de manifest prod — build complet"
+
+      - name: dbt build + test (dev, modèles modifiés)
+        run: |
+          if [ -f /tmp/prod_state/manifest.json ]; then
+            dbt build --profiles-dir . --target dev \
+              --select state:modified+ \
+              --state /tmp/prod_state
+          else
+            dbt build --profiles-dir . --target dev
+          fi
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
@@ -94,8 +109,23 @@ jobs:
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
-      - name: dbt build (prod)
-        run: dbt build --profiles-dir . --target prod
+      - name: Download prod manifest (state)
+        run: |
+          mkdir -p /tmp/prod_state
+          curl -sf -o /tmp/prod_state/manifest.json \
+            https://ballates.github.io/linkyhub_dbt/manifest.json \
+            && echo "Prod manifest téléchargé" \
+            || echo "Pas de manifest prod — build complet"
+
+      - name: dbt build (prod, modèles modifiés)
+        run: |
+          if [ -f /tmp/prod_state/manifest.json ]; then
+            dbt build --profiles-dir . --target prod \
+              --select state:modified+ \
+              --state /tmp/prod_state
+          else
+            dbt build --profiles-dir . --target prod
+          fi
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
