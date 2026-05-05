@@ -1,6 +1,6 @@
 {% docs __overview__ %}
 
-# Bienvenue sur la documentation LinkyHub — Ben Mbairo
+# Bienvenue sur la documentation LinkyHub - Ben Mbairo
 
 Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique structuré et documenté, hébergé sur **BigQuery**.
 
@@ -64,6 +64,7 @@ LinkedIn exporte les données sur une **fenêtre glissante d'un an**. Chaque exp
 |---|---|---|
 | **Impressions** | Pro-rata temporis | Fenêtre glissante → risque de double comptage |
 | **Interactions** | Export le plus récent | Métrique de stock, peut baisser (unlike) |
+| **Données géo** | Export le plus récent | Snapshot de répartition d'audience, pas une série temporelle |
 
 **Pro-rata temporis :** `contribution = impressions × (jours_nouveaux / 365)`
 

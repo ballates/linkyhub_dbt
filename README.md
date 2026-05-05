@@ -79,6 +79,7 @@ LinkedIn exporte les données sur une **fenêtre glissante d'un an**. Chaque nou
 |---|---|---|
 | **Impressions** | Pro-rata temporis | Fenêtre glissante → risque de double comptage |
 | **Interactions** | Export le plus récent | Métrique de stock, peut baisser (unlike) |
+| **Données géo** | Export le plus récent | Snapshot de répartition d'audience, pas une série temporelle |
 
 **Pro-rata temporis :** chaque export contribue proportionnellement aux jours nouveaux qu'il couvre :
 ```
@@ -121,7 +122,7 @@ Données synchronisées via **Fivetran** :
 
 ## Qualité des données
 
-146 tests automatisés couvrant :
+158 tests automatisés couvrant :
 
 - **Unicité** — clés surrogates (`id_*`) sur tous les modèles
 - **Non-nullité** — colonnes critiques
@@ -338,7 +339,7 @@ La documentation dbt est générée automatiquement et publiée sur GitHub Pages
 
 - **CI et dev sur les mêmes schemas** : le CI utilise le target `dev`, ce qui peut causer des conflits si un build local tourne en même temps
 - **Pas de target staging** : les données prod ne sont pas validées sur un environnement miroir avant déploiement
-- **dim_calendar hardcodée** : plage fixe 2021-2027, à mettre à jour manuellement
+- **dim_calendar** : la plage est dynamique (`today().year + 5`) mais le test `max_value: 2035` est statique et devra être mis à jour manuellement
 - **Pas de snapshots** : les changements historiques sur les dimensions ne sont pas trackés
 
 ### Évolutions recommandées
