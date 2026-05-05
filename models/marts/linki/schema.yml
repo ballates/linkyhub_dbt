@@ -139,10 +139,12 @@ models:
     description: "Dimension des posts LinkedIn - grain : 1 ligne par post unique"
     columns:
       - name: id_post
-        description: "Clé surrogate du post (generate_surrogate_key de l'URL)"
+        description: "Clé surrogate du post (generate_surrogate_key sur l'id LinkedIn)"
         tests:
           - not_null
           - unique
+      - name: title_post
+        description: "Titre du post extrait depuis le slug de l'URL (nouveau format LinkedIn)"
       - name: url_post
         description: "URL unique et complète du post LinkedIn"
         tests:

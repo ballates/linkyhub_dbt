@@ -16,6 +16,7 @@ SELECT
     -- ================================================================
     -- COLONNES MÉTIER
     -- ================================================================
+    title_post,
     url_post,
     date_publication_post,
     CONCAT('Post du ', FORMAT_DATE('%d-%m-%Y', date_publication_post)) AS label_post
