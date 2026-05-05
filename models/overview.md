@@ -1,6 +1,6 @@
 {% docs __overview__ %}
 
-# Bienvenue sur la documentation LinkyHub — Ben Mbairo
+# Bienvenue sur la documentation LinkyHub - Ben Mbairo
 
 Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique structuré et documenté, hébergé sur **BigQuery**.
 
@@ -23,7 +23,7 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ## Objectif
 
-Alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** du profil LinkedIn de Ben Mbairo, afin de suivre et d'analyser la performance de sa présence sur la plateforme.
+Le but ici est d'alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** de mon profil LinkedIn, www.linkedin.com/in/be4183al, afin de suivre et d'analyser la performance de ma présence sur la plateforme.
 
 ---
 
@@ -64,6 +64,7 @@ LinkedIn exporte les données sur une **fenêtre glissante d'un an**. Chaque exp
 |---|---|---|
 | **Impressions** | Pro-rata temporis | Fenêtre glissante → risque de double comptage |
 | **Interactions** | Export le plus récent | Métrique de stock, peut baisser (unlike) |
+| **Données géo** | Export le plus récent | Snapshot de répartition d'audience, pas une série temporelle |
 
 **Pro-rata temporis :** `contribution = impressions × (jours_nouveaux / 365)`
 

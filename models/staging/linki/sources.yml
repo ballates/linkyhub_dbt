@@ -85,7 +85,7 @@ sources:
             description: "Numéro de ligne technique"
           - name: _fivetran_synced
             description: "Date et heure de la dernière synchronisation Fivetran"
-          - name: date_
+          - name: date
             description: "Date de l'abonnement"
           - name: nouveaux_abonnes
             description: "Nombre de nouveaux abonnés sur la période"

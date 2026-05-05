@@ -178,14 +178,12 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              arguments:
-                regex: '^https://www\\.linkedin\\.com/.*'
+              regex: '^https://www\\.linkedin\\.com/.*'
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              arguments:
-                regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -340,5 +338,4 @@ models:
                 min_value: 0
                 max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              arguments:
-                column_type: numeric
+              column_type: numeric
