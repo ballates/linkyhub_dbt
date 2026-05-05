@@ -23,7 +23,7 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 ## Objectif
 
-Alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** du profil LinkedIn de Ben Mbairo, afin de suivre et d'analyser la performance de sa présence sur la plateforme.
+Le but ici est d'alimenter un **rapport Power BI** permettant de visualiser les KPIs liés aux **impressions** et aux **abonnements** de mon profil LinkedIn, www.linkedin.com/in/be4183al, afin de suivre et d'analyser la performance de ma présence sur la plateforme.
 
 ---
 

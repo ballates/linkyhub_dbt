@@ -23,8 +23,7 @@ models:
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
           - accepted_values:
-              arguments:
-                values: ['OUTGOING', 'INCOMING']
+              values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -130,9 +129,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 10000
+              min_value: 0
+              max_value: 10000
       - name: _periode
         description: "Identifiant de la période d'export (ex: 2025_01_21_2026_01_20)"
         tests:
@@ -190,9 +188,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 1000000
+              min_value: 0
+              max_value: 1000000
       - name: _periode
         description: "Identifiant de la période d'export"
         tests:
@@ -214,9 +211,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 1000000
+              min_value: 0
+              max_value: 1000000
       - name: url_du_post
         description: "URL du post LinkedIn"
         tests:

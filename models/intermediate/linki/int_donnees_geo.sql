@@ -6,6 +6,7 @@
   Description :
     Cast numérique du pourcentage. Filtre sur les lignes sans valeur numérique valide.
     Renommage de la colonne catégorie en zones_geographiques.
+    Déduplication par catégorie+valeur : on conserve uniquement l'export le plus récent (_periode DESC).
 */
 
 SELECT
@@ -27,3 +28,7 @@ SELECT
     _at_load
 FROM {{ ref('stg_donnees_geo') }}
 WHERE SAFE_CAST(pourcentage AS NUMERIC) IS NOT NULL
+QUALIFY ROW_NUMBER() OVER (
+    PARTITION BY id_donnee_geo
+    ORDER BY SAFE.PARSE_DATE('%Y_%m_%d', RIGHT(_periode, 10)) DESC
+) = 1

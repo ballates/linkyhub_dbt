@@ -26,16 +26,14 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 1000000
+              min_value: 0
+              max_value: 1000000
       - name: interactions
         description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - NULL si absent de l'export"
         tests:
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 1000000
+              min_value: 0
+              max_value: 1000000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
         tests:
@@ -57,9 +55,8 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 10000
+              min_value: 0
+              max_value: 10000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
         tests:
@@ -83,25 +80,22 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 2021
-                max_value: 2035
+              min_value: 2021
+              max_value: 2035
       - name: trimestre
         description: "Trimestre (1, 2, 3, ou 4)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 1
-                max_value: 4
+              min_value: 1
+              max_value: 4
       - name: mois
         description: "Mois (1 à 12)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 1
-                max_value: 12
+              min_value: 1
+              max_value: 12
       - name: nom_mois
         description: "Nom du mois en anglais (January, February, etc.)"
         tests:
@@ -115,17 +109,15 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 53
+              min_value: 0
+              max_value: 53
       - name: jour
         description: "Jour du mois (1 à 31)"
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 1
-                max_value: 31
+              min_value: 1
+              max_value: 31
       - name: nom_jour
         description: "Nom du jour en anglais (Monday, Tuesday, etc.)"
         tests:
@@ -178,14 +170,12 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_match_regex:
-              arguments:
-                regex: '^https://www\\.linkedin\\.com/.*'
+              regex: '^https://www\.linkedin\.com/.*'
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              arguments:
-                regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -212,8 +202,7 @@ models:
         tests:
           - not_null
           - accepted_values:
-              arguments:
-                values: ['OUTGOING', 'INCOMING']
+              values: ['OUTGOING', 'INCOMING']
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
       - name: message
@@ -240,12 +229,10 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 100
+              min_value: 0
+              max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              arguments:
-                column_type: numeric
+              column_type: numeric
 
   - name: dim_hierarchy_level
     description: "Dimension des niveaux hiérarchiques LinkedIn - grain : 1 ligne par niveau"
@@ -264,12 +251,10 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 100
+              min_value: 0
+              max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              arguments:
-                column_type: numeric
+              column_type: numeric
 
   - name: dim_learning
     description: "Dimension des formations LinkedIn Learning - grain : 1 ligne par formation unique"
@@ -336,9 +321,7 @@ models:
         tests:
           - not_null
           - dbt_expectations.expect_column_values_to_be_between:
-              arguments:
-                min_value: 0
-                max_value: 100
+              min_value: 0
+              max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              arguments:
-                column_type: numeric
+              column_type: numeric
