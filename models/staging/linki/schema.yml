@@ -17,14 +17,11 @@ models:
         description: "Nom complet du destinataire de l'invitation"
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
-      - name: message
-        description: "Message personnalisé accompagnant l'invitation"
       - name: direction
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
           - accepted_values:
-              arguments:
-                values: ['OUTGOING', 'INCOMING']
+              values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -107,8 +104,6 @@ models:
         description: "Indique si le contenu a été sauvegardé"
       - name: notes
         description: "Notes prises sur le contenu"
-      - name: field_extra
-        description: "Colonne technique sans valeur identifiée"
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:
@@ -193,6 +188,62 @@ models:
               max_value: 1000000
       - name: _periode
         description: "Identifiant de la période d'export"
+        tests:
+          - not_null
+      - name: _at_load
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
+  - name: stg_comments
+    description: "Table staging des commentaires LinkedIn"
+    columns:
+      - name: id_comment
+        description: "Clé surrogate du commentaire (generate_surrogate_key date+link+message)"
+        tests:
+          - not_null
+          - unique
+      - name: post_id
+        description: "Clé étrangère vers dim_posts (generate_surrogate_key sur les 8 premiers chiffres de l'URL)"
+        tests:
+          - not_null
+      - name: date
+        description: "Date du commentaire"
+        tests:
+          - not_null
+      - name: link
+        description: "URL du post commenté"
+        tests:
+          - not_null
+      - name: message
+        description: "Contenu du commentaire"
+      - name: _at_load
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
+  - name: stg_reactions
+    description: "Table staging des réactions LinkedIn"
+    columns:
+      - name: id_reaction
+        description: "Clé surrogate de la réaction (generate_surrogate_key date+type+link)"
+        tests:
+          - not_null
+          - unique
+      - name: post_id
+        description: "Clé étrangère vers dim_posts (generate_surrogate_key sur les 8 premiers chiffres de l'URL)"
+        tests:
+          - not_null
+      - name: date
+        description: "Date de la réaction"
+        tests:
+          - not_null
+      - name: type
+        description: "Type de réaction (Like, Celebrate, Support, etc.)"
+        tests:
+          - not_null
+      - name: link
+        description: "URL du post ayant reçu la réaction"
         tests:
           - not_null
       - name: _at_load

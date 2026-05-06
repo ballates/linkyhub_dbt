@@ -19,7 +19,6 @@ SELECT
     sender,
     recipient,
     sent_at,
-    message,
     direction,
     inviter_profile_url,
     invitee_profile_url,

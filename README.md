@@ -33,12 +33,13 @@ Les schemas sont séparés par environnement :
 
 ```mermaid
 flowchart LR
-    manuel["🙋 Dépôt manuel"] -->|"charger"| bucket[("linki_bucket_set")]
-    fivetran["📥 Fivetran"] -->|"sync"| gdrive[("google_drive")]
+    gcs["🪣 GCS\nlinki_bucket"] -->|"sync"| fivetran1["📥 Fivetran"]
+    fivetran1 -->|"charge"| landing[("linky_bucket_landing")]
+    fivetran2["📥 Fivetran"] -->|"sync"| gdrive[("google_drive")]
 
     subgraph bq ["🗄️ BigQuery"]
         direction LR
-        bucket
+        landing
         gdrive
         bronze[("🥉 bronze_linki\nvues")]
         silver[("🥈 silver_linki\ntables")]
@@ -50,7 +51,7 @@ flowchart LR
         stg["staging\nstg_*"] -->|"normalise"| int["intermediate\nint_*"] -->|"agrège"| mart["marts\nfct_* · dim_*"]
     end
 
-    bucket -->|"lecture"| stg
+    landing -->|"lecture"| stg
     gdrive -->|"lecture"| stg
     stg -->|"matérialise vues"| bronze
     int -->|"matérialise tables"| silver
@@ -101,10 +102,10 @@ contribution = impressions × (jours_nouveaux / 365)
 
 Données synchronisées via **Fivetran** :
 
-| Source BigQuery | Tables |
-|---|---|
-| `linki_bucket_set` | invitations, connections, certifications, learning |
-| `google_drive` | posts, interactions, abonnés, données démographiques |
+| Source BigQuery | Alimentation | Tables |
+|---|---|---|
+| `linky_bucket_landing` | Fivetran (GCS `linki_bucket` → BQ) | invitations, connections, certifications, learning, comments, reactions |
+| `google_drive` | Fivetran (sync automatique) | posts, interactions, abonnés, données démographiques |
 
 ---
 
@@ -112,11 +113,15 @@ Données synchronisées via **Fivetran** :
 
 | Couche | Schéma | Modèles | Matérialisation |
 |---|---|---|---|
-| Staging | `bronze_linki` | `stg_posts`, `stg_connections`, `stg_invitations`, `stg_certifications`, `stg_learning`, `stg_abonnes`, `stg_interactions`, `stg_donnees_geo` | Vue |
-| Intermediate | `silver_linki` | `int_posts`, `int_connections`, `int_invitations`, `int_certifications`, `int_learning`, `int_abonnes`, `int_interactions`, `int_donnees_geo` | Table |
-| Marts | `gold_linki` | `fct_posts`, `fct_abonnes`, `dim_posts`, `dim_connections`, `dim_invitations`, `dim_certifications`, `dim_learning`, `dim_area`, `dim_sectors`, `dim_hierarchy_level`, `dim_calendar` | Table / Incrémental |
+| Staging | `bronze_linki` | `stg_posts`, `stg_connections`, `stg_invitations`, `stg_certifications`, `stg_learning`, `stg_comments`, `stg_reactions`, `stg_abonnes`, `stg_interactions`, `stg_donnees_geo` | Vue |
+| Intermediate | `silver_linki` | `int_posts`, `int_connections`, `int_invitations`, `int_certifications`, `int_learning`, `int_engagement`, `int_abonnes`, `int_interactions`, `int_donnees_geo` | Table |
+| Marts | `gold_linki` | `fct_posts`, `fct_engagement`, `fct_abonnes`, `dim_posts`, `dim_connections`, `dim_invitations`, `dim_certifications`, `dim_learning`, `dim_area`, `dim_sectors`, `dim_hierarchy_level`, `dim_calendar` | Table / Incrémental |
 
-**Fact tables :** `fct_posts` et `fct_abonnes` sont en mode incrémental (`merge` strategy).
+**Fact tables :** `fct_posts` et `fct_abonnes` sont en mode incrémental (`merge` strategy). `fct_engagement` est en table.
+
+**Convention de nommage des clés :**
+- `id_nom` → clé primaire (PK) dans les dimensions et facts
+- `nom_id` → clé étrangère (FK) dans les facts (ex: `post_id` dans `fct_engagement`)
 
 ---
 
@@ -301,7 +306,7 @@ flowchart LR
         q[__TABLES__\nlast_modified_time ≥ 72h] --> result{Changement ?}
     end
 
-    fivetran[📥 Fivetran] -->|Sync| bq[(linki_bucket_set\ngoogle_drive)]
+    fivetran[📥 Fivetran] -->|Sync| bq[(linky_bucket_landing\ngoogle_drive)]
     bq --> q
 
     result -->|❌ NON| stop[Workflow terminé\nRien à faire]
@@ -360,6 +365,37 @@ Le rapport Power BI consomme les tables de la couche Gold (`gold_linki`) pour vi
 - Évolution des impressions par post
 - Évolution des abonnements dans le temps
 - Performance des interactions (likes, commentaires, partages)
+- Analyse de l'engagement par post (commentaires et réactions via `fct_engagement`) — croisement avec `interactions` LinkedIn pour estimer l'activité audience
 - Analyse démographique des abonnés (zones géographiques, secteurs, niveaux hiérarchiques)
+
+### Modèle de données — Relation `dim_posts` ↔ `fct_engagement`
+
+`fct_engagement` contient **toute l'activité LinkedIn de Ben Mbairo** : commentaires et réactions faits aussi bien sous ses propres posts que sous les posts d'autres membres.
+
+La colonne `is_own_post` permet de distinguer les deux cas :
+
+| `is_own_post` | Signification |
+|---|---|
+| `TRUE` | Engagement sous un post de `dim_posts` (ses propres posts) |
+| `FALSE` | Engagement sous le post d'un autre membre LinkedIn (absent de `dim_posts`) |
+
+**Conséquence dans Power BI :** en reliant `dim_posts` à `fct_engagement` via `id_post = post_id`, les lignes `is_own_post = FALSE` n'ont pas de correspondance dans `dim_posts` et apparaissent comme *(Blank)* dans les visuels filtrés par post.
+
+**Stratégie recommandée :** garder la relation active et filtrer systématiquement sur `is_own_post = TRUE` dans les visuels ou mesures DAX liés aux posts.
+
+```dax
+-- Exemple : nb de commentaires sous ses propres posts
+Nb Comments Own Posts =
+CALCULATE(
+    COUNTROWS(fct_engagement),
+    fct_engagement[type_event] = "comment",
+    fct_engagement[is_own_post] = TRUE
+)
+```
+
+**Lecture de `interactions` vs engagement calculé :**
+- `nb_comments` + `nb_reactions` dans `fct_posts` = activité **propre** de Ben Mbairo sous ses posts
+- `interactions` (export LinkedIn) = activité de **toute l'audience** (likes + comments + shares de tous)
+- Différence ≈ comments + réactions + republications des **autres membres** sur ce post
 
 ![Dashboard Power BI](assets/impressions.png)

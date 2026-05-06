@@ -8,7 +8,7 @@ Ce projet dbt transforme les données **LinkedIn** en un pipeline analytique str
 
 | Origine | Couche | Schéma | Modèles | Destination |
 |---|---|---|---|---|
-| `linki_bucket_set` | Staging | `bronze_linki` | `stg_*` (vues) | ↓ |
+| `linky_bucket_landing` | Staging | `bronze_linki` | `stg_*` (vues) | ↓ |
 | `google_drive` | Staging | `bronze_linki` | `stg_*` (vues) | ↓ |
 | — | Intermediate | `silver_linki` | `int_*` (tables) | ↓ |
 | — | Marts | `gold_linki` | `fct_*` / `dim_*` (incrémental) | **Power BI** |
@@ -31,7 +31,7 @@ Le but ici est d'alimenter un **rapport Power BI** permettant de visualiser les 
 
 | Source BigQuery | Alimentation | Tables |
 |---|---|---|
-| `linki_bucket_set` | Dépôt manuel | invitations, connections, certifications, learning |
+| `linky_bucket_landing` | Fivetran (GCS `linki_bucket` → BQ) | invitations, connections, certifications, learning, comments, reactions |
 | `google_drive` | Fivetran (sync automatique) | posts, interactions, abonnés, données démographiques |
 
 ---
@@ -40,13 +40,15 @@ Le but ici est d'alimenter un **rapport Power BI** permettant de visualiser les 
 
 | Couche | Schéma | Nombre de modèles | Type |
 |---|---|---|---|
-| Staging | `bronze_linki` | 8 | Vues |
-| Intermediate | `silver_linki` | 8 | Tables |
-| Marts | `gold_linki` | 11 | Tables / Incrémental |
+| Staging | `bronze_linki` | 10 | Vues |
+| Intermediate | `silver_linki` | 9 | Tables |
+| Marts | `gold_linki` | 12 | Tables / Incrémental |
 
-**Fact tables :** `fct_posts`, `fct_abonnes`
+**Fact tables :** `fct_posts`, `fct_engagement`, `fct_abonnes`
 
 **Dimensions :** `dim_posts`, `dim_connections`, `dim_invitations`, `dim_certifications`, `dim_learning`, `dim_area`, `dim_sectors`, `dim_hierarchy_level`, `dim_calendar`
+
+**Convention clés :** `id_nom` = clé primaire (PK) — `nom_id` = clé étrangère (FK, ex: `post_id` dans `fct_engagement`)
 
 ---
 
@@ -99,7 +101,24 @@ Le rapport Power BI consomme les tables de la couche Gold (`gold_linki`) pour vi
 - Évolution des impressions par post
 - Évolution des abonnements dans le temps
 - Performance des interactions (likes, commentaires, partages)
+- Analyse de l'engagement par post (commentaires et réactions via `fct_engagement`) — croisement avec `interactions` LinkedIn pour estimer l'activité audience
 - Analyse démographique des abonnés (zones géographiques, secteurs, niveaux hiérarchiques)
+
+### Relation `dim_posts` ↔ `fct_engagement`
+
+`fct_engagement` couvre **toute l'activité LinkedIn** de Ben Mbairo : ses propres posts **et** les posts des autres membres.
+
+| `is_own_post` | Signification |
+|---|---|
+| `TRUE` | Post présent dans `dim_posts` (ses posts à lui) |
+| `FALSE` | Post d'un autre membre — orphelin dans la relation |
+
+**Stratégie Power BI :** relation active `dim_posts.id_post = fct_engagement.post_id`, filtre systématique sur `is_own_post = TRUE` dans les visuels liés aux posts. Les orphelins (`FALSE`) sont utilisés séparément pour analyser l'activité sur les posts des autres.
+
+**Lecture interactions vs engagement calculé :**
+- `fct_posts.nb_comments` + `nb_reactions` = activité propre de Ben Mbairo sous ses posts
+- `fct_posts.interactions` = activité totale de l'audience (tous membres confondus)
+- Différence = comments + réactions + republications des **autres membres**
 
 ![Dashboard Power BI](https://ballates.github.io/linkyhub_dbt/assets/impressions.png)
 

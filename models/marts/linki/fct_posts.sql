@@ -2,12 +2,16 @@
   Modèle      : fct_posts
   Source      : prime-force-478609-s4.silver_linki.int_posts
                 prime-force-478609-s4.silver_linki.int_interactions
+                prime-force-478609-s4.gold_linki.fct_engagement
   Cible       : prime-force-478609-s4.gold_linki.fct_posts
 
   Description :
-    Table de faits des posts LinkedIn. Joint les impressions (int_posts) et les interactions
-    (int_interactions) par id_post. Les interactions peuvent être NULL si le post est absent
-    du dernier export LinkedIn (post trop ancien ou non inclus dans la période d'export).
+    Table de faits des posts LinkedIn. Joint les impressions (int_posts), les interactions
+    (int_interactions) et l'engagement (fct_engagement, is_own_post = TRUE) par id_post.
+    interactions peut être NULL si le post est absent de l'export LinkedIn (post trop ancien).
+    nb_comments + nb_reactions = mon activité sur mes propres posts (is_own_post = TRUE).
+    LIMITE : ne capture pas les comments/réactions des autres membres sous ses posts.
+    interactions - (nb_comments + nb_reactions) ≈ activité audience (comments + réactions + republications des autres).
 
   ┌─────────────────────────────────────────────────────────────────────────────┐
   │  STRATÉGIE INCRÉMENTALE                                                     │
@@ -52,6 +56,16 @@ interactions AS (
         id_post,
         interactions
     FROM {{ ref('int_interactions') }}
+),
+
+engagement AS (
+    SELECT
+        post_id,
+        COUNTIF(type_event = 'comment')  AS nb_comments,
+        COUNTIF(type_event = 'reaction') AS nb_reactions
+    FROM {{ ref('fct_engagement') }}
+    WHERE is_own_post = TRUE
+    GROUP BY post_id
 )
 
 SELECT
@@ -67,6 +81,8 @@ SELECT
     p.date_publication_post,
     p.impressions,
     i.interactions,
+    COALESCE(e.nb_comments, 0)      AS nb_comments,
+    COALESCE(e.nb_reactions, 0)     AS nb_reactions,
 
     -- ================================================================
     -- MÉTADONNÉES DE TRAÇABILITÉ
@@ -75,3 +91,5 @@ SELECT
 FROM posts p
 LEFT JOIN interactions i
     ON p.id_post = i.id_post
+LEFT JOIN engagement e
+    ON p.id_post = e.post_id
