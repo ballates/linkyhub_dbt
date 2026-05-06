@@ -28,4 +28,4 @@ SELECT
     -- MÉTADONNÉES DE TRAÇABILITÉ
     -- ================================================================
     CURRENT_TIMESTAMP()                          AS _at_load
-FROM {{ source('linki_bucket_set', 'certifications') }}
+FROM {{ source('linki_bucket_set', 'Certifications') }}

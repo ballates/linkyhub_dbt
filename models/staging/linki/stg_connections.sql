@@ -8,39 +8,51 @@
     Normalisation de l'adresse email. Génération de la surrogate key sur prénom, nom, URL et email.
 */
 
+WITH renamed AS (
+    SELECT
+        string_field_0  AS first_name,
+        string_field_1  AS last_name,
+        string_field_2  AS url,
+        string_field_3  AS email_address,
+        string_field_4  AS company,
+        string_field_5  AS position,
+        string_field_6  AS connected_on
+    FROM {{ source('linki_bucket_set', 'Connections') }}
+)
+
 SELECT
     -- ================================================================
     -- CLÉ TECHNIQUE / SURROGATE KEY
     -- ================================================================
-    {{ dbt_utils.generate_surrogate_key(['`First Name`', '`Last Name`', 'URL', '`Email Address`']) }} AS id_connection,
+    {{ dbt_utils.generate_surrogate_key(['first_name', 'last_name', 'url', 'email_address']) }} AS id_connection,
 
     -- ================================================================
     -- COLONNES MÉTIER
     -- ================================================================
-    `First Name`                AS first_name,
-    `Last Name`                 AS last_name,
-    URL                         AS url,
-    {{ normalize_email('`Email Address`') }} AS email_address,
-    Company                     AS company,
-    Position                    AS position,
+    first_name,
+    last_name,
+    url,
+    {{ normalize_email('email_address') }}  AS email_address,
+    company,
+    position,
     COALESCE(
         -- Format français : "11-janv-26", "27-nov-25"
         SAFE.PARSE_DATE('%d-%b-%y',
             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
             REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-            LOWER(`Connected On`),
+            LOWER(connected_on),
             'janv','jan'),'févr','feb'),'mars','mar'),'avr','apr'),
             'mai','may'),'juin','jun'),'juil','jul'),'août','aug'),
             'sept','sep'),'oct','oct'),'nov','nov'),'déc','dec')
         ),
         -- Format anglais court : "27 Nov 25"
-        SAFE.PARSE_DATE('%d %b %y', `Connected On`),
+        SAFE.PARSE_DATE('%d %b %y', connected_on),
         -- Format anglais long : "31 Dec 2025"
-        SAFE.PARSE_DATE('%d %b %Y', `Connected On`)
+        SAFE.PARSE_DATE('%d %b %Y', connected_on)
     )                           AS connected_on,
 
     -- ================================================================
     -- MÉTADONNÉES DE TRAÇABILITÉ
     -- ================================================================
     CURRENT_TIMESTAMP()         AS _at_load
-FROM {{ source('linki_bucket_set', 'connections') }}
+FROM renamed
