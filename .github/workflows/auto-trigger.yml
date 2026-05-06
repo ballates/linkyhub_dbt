@@ -39,7 +39,7 @@ jobs:
 
           client = bigquery.Client(project="prime-force-478609-s4")
 
-          datasets = ["linki_bucket_set", "google_drive"]
+          datasets = ["linky_bucket_landing", "google_drive"]
           project = "prime-force-478609-s4"
 
           changed = False
@@ -75,12 +75,12 @@ jobs:
 
       - name: dbt deps
         if: steps.check-bq.outputs.changed == 'true' || steps.check-code.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
-        run: dbt deps --profiles-dir .
+        run: uv run dbt deps --profiles-dir .
         env:
           DBT_KEYFILE: /tmp/gcp_key.json
 
       - name: dbt build (prod)
         if: steps.check-bq.outputs.changed == 'true' || steps.check-code.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
-        run: dbt build --profiles-dir . --target prod
+        run: uv run dbt build --profiles-dir . --target prod
         env:
           DBT_KEYFILE: /tmp/gcp_key.json

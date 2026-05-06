@@ -19,8 +19,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_calendar')
-              field: date
+              arguments:
+                to: ref('dim_calendar')
+                field: date
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
         tests:
@@ -74,7 +75,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['comment', 'reaction']
+              arguments:
+                values: ['comment', 'reaction']
       - name: date
         description: "Date de l'événement"
         tests:
@@ -99,8 +101,9 @@ models:
           - not_null
           - unique
           - relationships:
-              to: ref('dim_calendar')
-              field: date
+              arguments:
+                to: ref('dim_calendar')
+                field: date
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés acquis ce jour"
         tests:
@@ -229,14 +232,16 @@ models:
               config:
                 severity: warn
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^https://www\\.linkedin\\.com/.*'
+              arguments:
+                regex: '^https://www\\.linkedin\\.com/.*'
               config:
                 severity: warn
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+              arguments:
+                regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -263,7 +268,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['OUTGOING', 'INCOMING']
+              arguments:
+                values: ['OUTGOING', 'INCOMING']
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
       - name: inviter_profile_url
@@ -388,4 +394,5 @@ models:
                 min_value: 0
                 max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              column_type: numeric
+              arguments:
+                column_type: numeric

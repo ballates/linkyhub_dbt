@@ -21,7 +21,8 @@ models:
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
           - accepted_values:
-              values: ['OUTGOING', 'INCOMING']
+              arguments:
+                values: ['OUTGOING', 'INCOMING']
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -186,7 +187,8 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ['comment', 'reaction']
+              arguments:
+                values: ['comment', 'reaction']
       - name: date
         description: "Date de l'événement d'engagement"
         tests:
