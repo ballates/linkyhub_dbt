@@ -10,6 +10,19 @@
     Note : `from` et `to` sont des mots réservés SQL, aliasés en sender/recipient.
 */
 
+WITH renamed AS (
+    SELECT
+        string_field_0  AS sender,
+        string_field_1  AS recipient,
+        string_field_2  AS sent_at,
+        string_field_3  AS message,
+        string_field_4  AS direction,
+        string_field_5  AS inviter_profile_url,
+        string_field_6  AS invitee_profile_url
+    FROM {{ source('linki_bucket_set', 'Invitations') }}
+    WHERE string_field_0 != 'From'
+)
+
 SELECT
     -- ================================================================
     -- CLÉ TECHNIQUE / SURROGATE KEY
