@@ -9,19 +9,6 @@
     Normalisation de l'adresse email. Génération de la surrogate key sur prénom, nom, URL et email.
 */
 
-WITH renamed AS (
-    SELECT
-        string_field_0  AS first_name,
-        string_field_1  AS last_name,
-        string_field_2  AS url,
-        string_field_3  AS email_address,
-        string_field_4  AS company,
-        string_field_5  AS position,
-        string_field_6  AS connected_on
-    FROM {{ source('linki_bucket_set', 'Connections') }}
-    WHERE string_field_0 != 'First Name'
-)
-
 SELECT
     -- ================================================================
     -- CLÉ TECHNIQUE / SURROGATE KEY
