@@ -17,8 +17,6 @@ models:
         description: "Nom complet du destinataire de l'invitation"
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
-      - name: message
-        description: "Message personnalisé accompagnant l'invitation"
       - name: direction
         description: "Sens de l'invitation : OUTGOING (envoyée) ou INCOMING (reçue)"
         tests:
@@ -167,6 +165,40 @@ models:
         description: "Libellé associé à la catégorie démographique"
         tests:
           - not_null
+      - name: _at_load
+        description: "Date de chargement de la ligne"
+        tests:
+          - not_null
+
+  - name: int_engagement
+    description: "Table intermédiaire unifiée des commentaires et réactions LinkedIn - grain : 1 ligne par événement d'engagement"
+    columns:
+      - name: id_engagement
+        description: "Clé surrogate de l'événement (id_comment ou id_reaction selon type_event)"
+        tests:
+          - not_null
+          - unique
+      - name: post_id
+        description: "Clé étrangère vers dim_posts"
+        tests:
+          - not_null
+      - name: type_event
+        description: "Type d'événement : 'comment' ou 'reaction'"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['comment', 'reaction']
+      - name: date
+        description: "Date de l'événement d'engagement"
+        tests:
+          - not_null
+      - name: link
+        description: "URL du post concerné"
+        tests:
+          - not_null
+      - name: content
+        description: "Contenu de l'engagement : message du commentaire ou type de réaction (Like, Celebrate, etc.)"
       - name: _at_load
         description: "Date de chargement de la ligne"
         tests:

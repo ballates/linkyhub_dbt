@@ -19,8 +19,9 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_calendar')
-              field: date
+              arguments:
+                to: ref('dim_calendar')
+                field: date
       - name: impressions
         description: "Nombre de fois que le post a été affiché dans un fil d'actualité"
         tests:
@@ -30,14 +31,64 @@ models:
                 min_value: 0
                 max_value: 1000000
       - name: interactions
-        description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - NULL si absent de l'export"
+        description: "Nombre total d'interactions sur le post (likes, commentaires, partages) - NULL si absent de l'export LinkedIn"
         tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 1000000
+      - name: nb_comments
+        description: "Nombre de mes commentaires sous mes propres posts (fct_engagement, is_own_post = TRUE)"
+        tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              arguments:
+                min_value: 0
+                max_value: 1000000
+      - name: nb_reactions
+        description: "Nombre de mes réactions sous mes propres posts (fct_engagement, is_own_post = TRUE)"
+        tests:
+          - not_null
           - dbt_expectations.expect_column_values_to_be_between:
               arguments:
                 min_value: 0
                 max_value: 1000000
       - name: _at_load
         description: "Date et heure de chargement de la ligne dans la table de fait"
+        tests:
+          - not_null
+
+  - name: fct_engagement
+    description: "Table de fait de l'engagement LinkedIn - grain : 1 ligne par commentaire ou réaction. is_own_post = TRUE si le post est dans dim_posts (mes posts), FALSE si c'est le post d'un autre membre"
+    columns:
+      - name: id_engagement
+        description: "Clé surrogate de l'événement d'engagement"
+        tests:
+          - not_null
+          - unique
+      - name: post_id
+        description: "Clé étrangère vers dim_posts. NULL-safe : peut référencer des posts d'autres membres LinkedIn (absents de dim_posts qui ne contient que mes propres posts)"
+        tests:
+          - not_null
+      - name: type_event
+        description: "Type d'événement : 'comment' ou 'reaction'"
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ['comment', 'reaction']
+      - name: date
+        description: "Date de l'événement"
+        tests:
+          - not_null
+      - name: link
+        description: "URL du post concerné"
+        tests:
+          - not_null
+      - name: content
+        description: "Message du commentaire ou type de réaction (Like, Celebrate, etc.)"
+      - name: is_own_post
+        description: "TRUE si c'est un de mes posts (présent dans dim_posts), FALSE si c'est le post d'un autre membre LinkedIn"
         tests:
           - not_null
 
@@ -50,8 +101,9 @@ models:
           - not_null
           - unique
           - relationships:
-              to: ref('dim_calendar')
-              field: date
+              arguments:
+                to: ref('dim_calendar')
+                field: date
       - name: nouveaux_abonnes
         description: "Nombre de nouveaux abonnés acquis ce jour"
         tests:
@@ -180,14 +232,16 @@ models:
               config:
                 severity: warn
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^https://www\\.linkedin\\.com/.*'
+              arguments:
+                regex: '^https://www\\.linkedin\\.com/.*'
               config:
                 severity: warn
       - name: email_address
         description: "Adresse email du contact (normalisée en minuscules)"
         tests:
           - dbt_expectations.expect_column_values_to_match_regex:
-              regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
+              arguments:
+                regex: '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'
       - name: company
         description: "Entreprise actuelle du contact"
       - name: position
@@ -218,8 +272,6 @@ models:
                 values: ['OUTGOING', 'INCOMING']
       - name: sent_at
         description: "Date et heure d'envoi de l'invitation"
-      - name: message
-        description: "Message personnalisé accompagnant l'invitation"
       - name: inviter_profile_url
         description: "URL du profil LinkedIn de la personne qui a envoyé l'invitation"
       - name: invitee_profile_url
@@ -342,4 +394,5 @@ models:
                 min_value: 0
                 max_value: 100
           - dbt_expectations.expect_column_values_to_be_of_type:
-              column_type: numeric
+              arguments:
+                column_type: numeric

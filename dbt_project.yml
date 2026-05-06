@@ -43,5 +43,3 @@ models:
       linki:
         +materialized: table
         +schema: gold_linki
-dbt-cloud:
-    project-id: 70471823557096
