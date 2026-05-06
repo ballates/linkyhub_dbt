@@ -18,6 +18,7 @@ WITH renamed AS (
         string_field_5  AS position,
         string_field_6  AS connected_on
     FROM {{ source('linki_bucket_set', 'Connections') }}
+    WHERE string_field_0 != 'First Name'
 )
 
 SELECT

@@ -18,6 +18,7 @@ WITH renamed AS (
         string_field_5  AS inviter_profile_url,
         string_field_6  AS invitee_profile_url
     FROM {{ source('linki_bucket_set', 'Invitations') }}
+    WHERE string_field_0 != 'From'
 )
 
 SELECT

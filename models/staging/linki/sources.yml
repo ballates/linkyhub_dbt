@@ -30,11 +30,11 @@ sources:
             description: "Lien vers la certification en ligne"
           - name: Authority
             description: "Organisme ou entreprise qui a délivré la certification"
-          - name: Started On
+          - name: Started_On
             description: "Date de début de la certification"
-          - name: Finished On
+          - name: Finished_On
             description: "Date d'expiration de la certification"
-          - name: License Number
+          - name: License_Number
             description: "Numéro de licence ou identifiant unique de la certification"
       
       - name: Connections

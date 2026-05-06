@@ -12,17 +12,17 @@ SELECT
     -- ================================================================
     -- CLÉ TECHNIQUE / SURROGATE KEY
     -- ================================================================
-    {{ dbt_utils.generate_surrogate_key(['Name', 'Authority', '`License Number`']) }} AS id_certification,
+    {{ dbt_utils.generate_surrogate_key(['Name', 'Authority', 'License_Number']) }} AS id_certification,
 
     -- ================================================================
     -- COLONNES MÉTIER
     -- ================================================================
-    Name                                         AS name,
-    Url                                          AS url,
-    Authority                                    AS authority,
-    SAFE.PARSE_TIMESTAMP('%b %Y', `Started On`)  AS started_on,
-    SAFE.PARSE_TIMESTAMP('%b %Y', `Finished On`) AS finished_on,
-    `License Number`                             AS license_number,
+    Name                                          AS name,
+    Url                                           AS url,
+    Authority                                     AS authority,
+    SAFE.PARSE_TIMESTAMP('%b %Y', Started_On)     AS started_on,
+    SAFE.PARSE_TIMESTAMP('%b %Y', Finished_On)    AS finished_on,
+    License_Number                                AS license_number,
 
     -- ================================================================
     -- MÉTADONNÉES DE TRAÇABILITÉ

@@ -18,6 +18,7 @@ WITH renamed AS (
         string_field_5  AS saved,
         string_field_6  AS notes
     FROM {{ source('linki_bucket_set', 'learning') }}
+    WHERE string_field_0 != 'Content Title'
 )
 
 SELECT
