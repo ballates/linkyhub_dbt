@@ -5,7 +5,7 @@
 
   Description :
     Typage des colonnes des commentaires LinkedIn issues du bucket GCS via Fivetran.
-    Extraction du post_id (8 premiers chiffres) depuis l'URL pour jointure avec fct_posts.
+    Extraction du post_id (ID LinkedIn complet) depuis l'URL pour jointure avec fct_posts.
     Génération de la surrogate key sur la date, le lien et le message.
 */
 

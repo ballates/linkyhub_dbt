@@ -6,7 +6,7 @@
 
   Description :
     Historisation des données de posts LinkedIn issues de Google Drive via Fivetran.
-    Extraction du id_post (8 premiers chiffres de l'ID LinkedIn) depuis l'URL pour stabiliser
+    Extraction du id_post (ID LinkedIn complet) depuis l'URL pour stabiliser
     l'identifiant entre les différents formats d'export. UNION ALL de plusieurs exports périodiques.
     Génération de la surrogate key sur le id_post.
 */
